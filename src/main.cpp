@@ -7,6 +7,7 @@
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
 
 #define OPEN_PIN D5
 #define CLOSED_PIN D6
@@ -68,6 +69,15 @@ void setup()
     Serial.print(WiFi.localIP());
     Serial.print(", hostname: ");
     Serial.println(WiFi.hostname());
+
+    LittleFSConfig cfg;
+    cfg.setAutoFormat(true);
+    LittleFS.setConfig(cfg);
+    LittleFS.begin();
+
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->send(LittleFS, "/index.html", "text/html");
+    });
 
     server.on("/rand", HTTP_GET, [](AsyncWebServerRequest* request) {
         request->send(200, "text/plain", String(random(1000)));
