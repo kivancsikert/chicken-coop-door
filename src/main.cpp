@@ -86,6 +86,7 @@ void loop()
 
     if (!motor.run()) {
         if (state == State::OPEN || state == State::CLOSED) {
+            motor.disableOutputs();
             delay(250);
             return;
         }
