@@ -53,6 +53,7 @@ void setup()
     }
 
     WiFi.mode(WIFI_AP_STA);
+    WiFi.hostname("chickens");
     delay(500);
     WiFi.beginSmartConfig();
     Serial.print("WiFi connecting via SmartConfig");
@@ -61,10 +62,12 @@ void setup()
         Serial.print(".");
         Serial.println(WiFi.smartConfigDone());
     }
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    Serial.print("WiFi connected, SSID: ");
+    Serial.print(WiFi.SSID());
+    Serial.print(", IP address: ");
+    Serial.print(WiFi.localIP());
+    Serial.print(", hostname: ");
+    Serial.println(WiFi.hostname());
 
     server.on("/rand", HTTP_GET, [](AsyncWebServerRequest* request) {
         request->send(200, "text/plain", String(random(1000)));
