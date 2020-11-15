@@ -5,6 +5,8 @@
 #include <Wire.h>
 
 #include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 #define OPEN_PIN D5
 #define CLOSED_PIN D6
@@ -24,6 +26,8 @@ enum class State {
 };
 
 State state = State::OPEN;
+
+AsyncWebServer server(80);
 
 void setup()
 {
@@ -61,6 +65,12 @@ void setup()
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
+
+    server.on("/rand", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->send(200, "text/plain", String(random(1000)));
+    });
+
+    server.begin();
 }
 
 unsigned long previousMillis = 0;
