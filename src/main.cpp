@@ -9,6 +9,8 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 
+#include <ArduinoJson.h>
+
 #define OPEN_PIN D5
 #define CLOSED_PIN D6
 
@@ -18,6 +20,7 @@ AccelStepper motor(AccelStepper::FULL4WIRE, D0, D2, D1, D3);
 
 BH1750 lightMeter;
 float lightLimit = 70;
+float currentLight = 0;
 
 enum class State {
     OPEN,
@@ -79,8 +82,16 @@ void setup()
         request->send(LittleFS, "/index.html", "text/html");
     });
 
-    server.on("/rand", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(200, "text/plain", String(random(1000)));
+    server.on("/status", HTTP_GET, [](AsyncWebServerRequest* request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        const int capacity = JSON_OBJECT_SIZE(5);
+        StaticJsonDocument<capacity> results;
+        results["version"] = "1.2.3";
+        results["light"] = currentLight;
+        results["lightLimit"] = lightLimit;
+        results["state"] = static_cast<int>(state);
+        serializeJson(results, *response);
+        request->send(response);
     });
 
     server.begin();
@@ -96,15 +107,15 @@ void loop()
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis > interval) {
         previousMillis = currentMillis;
-        float lux = lightMeter.readLightLevel();
-        if (lux < lightLimit && state == State::OPEN) {
+        currentLight = lightMeter.readLightLevel();
+        if (currentLight < lightLimit && state == State::OPEN) {
             Serial.println("Closing...");
             state = State::CLOSING;
-        } else if (lux >= lightLimit && state == State::CLOSED) {
+        } else if (currentLight >= lightLimit && state == State::CLOSED) {
             Serial.println("Opening...");
             state = State::OPENING;
         }
-        Serial.printf("Light: %f, state: %d\n", lux, state);
+        Serial.printf("Light: %f, state: %d\n", currentLight, state);
     }
 
     if (!motor.run()) {
