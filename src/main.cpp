@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include <BH1750.h>
 #include <AccelStepper.h>
+#include <BH1750.h>
 #include <Wire.h>
 
 #define RIGHT_PIN D5
@@ -10,8 +10,6 @@
 const int stepsPerRevolution = 2048;
 
 AccelStepper motor(AccelStepper::FULL4WIRE, D0, D2, D1, D3);
-
-int speed = 10;
 
 BH1750 lightMeter;
 
@@ -30,17 +28,28 @@ void setup()
     motor.setMaxSpeed(500);
     motor.setAcceleration(200);
 
-    // Wire.begin(D1, D2);
-    // if (lightMeter.begin()) {
-    //     Serial.println("BH1750 initialised");
-    // } else {
-    //     Serial.println("Error initialising BH1750");
-    // }
-    // Serial.println("Running...");
+    Wire.begin(9, 10);
+    if (lightMeter.begin()) {
+        Serial.println("BH1750 initialised");
+    } else {
+        Serial.println("Error initialising BH1750");
+    }
 }
+
+unsigned long previousMillis = 0;
+unsigned long interval = 1000;
 
 void loop()
 {
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis > interval) {
+        previousMillis = currentMillis;
+        float lux = lightMeter.readLightLevel();
+        Serial.print("Light: ");
+        Serial.print(lux);
+        Serial.println(" lx");
+    }
+
     int right = digitalRead(RIGHT_PIN);
     int left = digitalRead(LEFT_PIN);
     if (left != 0 || right != 0) {
@@ -49,10 +58,4 @@ void loop()
         motor.moveTo(target);
     }
     motor.run();
-
-    // uint16_t lux = lightMeter.readLightLevel();
-    // Serial.print("Light: ");
-    // Serial.print(lux);
-    // Serial.println(" lx");
-    // delay(1000);
 }
