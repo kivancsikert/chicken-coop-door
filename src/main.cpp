@@ -4,6 +4,8 @@
 #include <BH1750.h>
 #include <Wire.h>
 
+#include <ESP8266WiFi.h>
+
 #define OPEN_PIN D5
 #define CLOSED_PIN D6
 
@@ -45,6 +47,20 @@ void setup()
     } else {
         Serial.println("Error initialising BH1750");
     }
+
+    WiFi.mode(WIFI_AP_STA);
+    delay(500);
+    WiFi.beginSmartConfig();
+    Serial.print("WiFi connecting via SmartConfig");
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+        Serial.println(WiFi.smartConfigDone());
+    }
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
 }
 
 unsigned long previousMillis = 0;
