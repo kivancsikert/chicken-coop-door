@@ -14,14 +14,14 @@ AccelStepper motor(AccelStepper::FULL4WIRE, D0, D2, D1, D3);
 BH1750 lightMeter;
 float lightLimit = 70;
 
-enum State {
+enum class State {
     OPEN,
     CLOSED,
     OPENING,
     CLOSING
 };
 
-State state = OPEN;
+State state = State::OPEN;
 
 void setup()
 {
@@ -58,37 +58,37 @@ void loop()
     if (currentMillis - previousMillis > interval) {
         previousMillis = currentMillis;
         float lux = lightMeter.readLightLevel();
-        if (lux < lightLimit && state == OPEN) {
+        if (lux < lightLimit && state == State::OPEN) {
             Serial.println("Closing...");
-            state = CLOSING;
-        } else if (lux >= lightLimit && state == CLOSED) {
+            state = State::CLOSING;
+        } else if (lux >= lightLimit && state == State::CLOSED) {
             Serial.println("Opening...");
-            state = OPENING;
+            state = State::OPENING;
         }
         Serial.printf("Light: %f, state: %d\n", lux, state);
     }
 
     if (!motor.run()) {
-        if (state == OPEN || state == CLOSED) {
+        if (state == State::OPEN || state == State::CLOSED) {
             delay(250);
             return;
         }
     }
 
-    if (state == CLOSING) {
+    if (state == State::CLOSING) {
         int closed = digitalRead(CLOSED_PIN);
         if (closed) {
             Serial.println("Closed");
             motor.stop();
-            state = CLOSED;
+            state = State::CLOSED;
         } else {
             motor.move(stepsAtOnce);
         }
-    } else if (state == OPENING) {
+    } else if (state == State::OPENING) {
         int open = digitalRead(OPEN_PIN);
         if (open) {
             motor.stop();
-            state = OPEN;
+            state = State::OPEN;
         } else {
             motor.move(-stepsAtOnce);
         }
