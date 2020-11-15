@@ -19,7 +19,19 @@ const int stepsPerRevolution = 2048;
 AccelStepper motor(AccelStepper::FULL4WIRE, D0, D2, D1, D3);
 
 BH1750 lightMeter;
-float lightLimit = 70;
+/**
+ * Light required to be above limit to open the door.
+ */
+float openLightLimit = 120;
+
+/**
+ * Light required to be below limit to open the door.
+ */
+float closeLightLimit = 50;
+
+/**
+ * The current level of light.
+ */
 float currentLight = 0;
 
 enum class State {
@@ -83,12 +95,13 @@ void setup()
     });
 
     server.on("/status", HTTP_GET, [](AsyncWebServerRequest* request) {
-        AsyncResponseStream *response = request->beginResponseStream("application/json");
-        const int capacity = JSON_OBJECT_SIZE(5);
+        AsyncResponseStream* response = request->beginResponseStream("application/json");
+        const int capacity = JSON_OBJECT_SIZE(6);
         StaticJsonDocument<capacity> results;
         results["version"] = "1.2.3";
         results["light"] = currentLight;
-        results["lightLimit"] = lightLimit;
+        results["openLightLimit"] = openLightLimit;
+        results["closeLightLimit"] = closeLightLimit;
         results["motor_position"] = motor.currentPosition();
         results["state"] = static_cast<int>(state);
         serializeJson(results, *response);
@@ -109,10 +122,10 @@ void loop()
     if (currentMillis - previousMillis > interval) {
         previousMillis = currentMillis;
         currentLight = lightMeter.readLightLevel();
-        if (currentLight < lightLimit && state == State::OPEN) {
+        if (currentLight < closeLightLimit && state == State::OPEN) {
             Serial.println("Closing...");
             state = State::CLOSING;
-        } else if (currentLight >= lightLimit && state == State::CLOSED) {
+        } else if (currentLight > openLightLimit && state == State::CLOSED) {
             Serial.println("Opening...");
             state = State::OPENING;
         }
