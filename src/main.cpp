@@ -89,6 +89,7 @@ void setup()
         results["version"] = "1.2.3";
         results["light"] = currentLight;
         results["lightLimit"] = lightLimit;
+        results["motor_position"] = motor.currentPosition();
         results["state"] = static_cast<int>(state);
         serializeJson(results, *response);
         request->send(response);
