@@ -74,6 +74,10 @@ struct State {
 
 AsyncWebServer server(80);
 
+void LOG(String message) {
+    Serial.println(message);
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -163,8 +167,6 @@ void setup()
             Serial.println("Receive Failed");
         } else if (error == OTA_END_ERROR) {
             Serial.println("End Failed");
-        } else {
-            Serial.printf("OTA error %d\n", error);
         }
     });
     ArduinoOTA.begin();
@@ -187,13 +189,12 @@ void loop()
         previousMillis = currentMillis;
         state.currentLight = lightMeter.readLightLevel();
         if (state.currentLight < config.closeLightLimit && state.gateState == GateState::OPEN) {
-            Serial.println("Closing...");
+            LOG("Closing...");
             state.gateState = GateState::CLOSING;
         } else if (state.currentLight > config.openLightLimit && state.gateState == GateState::CLOSED) {
-            Serial.println("Opening...");
+            LOG("Opening...");
             state.gateState = GateState::OPENING;
         }
-        Serial.printf("Light: %f, state: %d\n", state.currentLight, state.gateState);
     }
 
     if (!motor.run()) {
@@ -206,7 +207,7 @@ void loop()
 
     if (state.gateState == GateState::CLOSING) {
         if (state.closedSwitch) {
-            Serial.println("Closed");
+            LOG("Closed");
             motor.stop();
             state.gateState = GateState::CLOSED;
         } else {
@@ -214,6 +215,7 @@ void loop()
         }
     } else if (state.gateState == GateState::OPENING) {
         if (state.openSwitch) {
+            LOG("Open");
             motor.stop();
             state.gateState = GateState::OPEN;
         } else {
