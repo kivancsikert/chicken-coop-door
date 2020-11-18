@@ -45,6 +45,9 @@ State state = State::OPEN;
 
 AsyncWebServer server(80);
 
+bool openSwitch = false;
+bool closedSwitch = false;
+
 void setup()
 {
     Serial.begin(115200);
@@ -96,13 +99,15 @@ void setup()
 
     server.on("/status", HTTP_GET, [](AsyncWebServerRequest* request) {
         AsyncResponseStream* response = request->beginResponseStream("application/json");
-        const int capacity = JSON_OBJECT_SIZE(6);
+        const int capacity = JSON_OBJECT_SIZE(10);
         StaticJsonDocument<capacity> results;
         results["version"] = "1.2.3";
         results["light"] = currentLight;
         results["openLightLimit"] = openLightLimit;
         results["closeLightLimit"] = closeLightLimit;
         results["motor_position"] = motor.currentPosition();
+        results["openSwitch"] = openSwitch;
+        results["closedSwitch"] = closedSwitch;
         results["state"] = static_cast<int>(state);
         serializeJson(results, *response);
         request->send(response);
@@ -118,6 +123,9 @@ unsigned int stepsAtOnce = 100;
 
 void loop()
 {
+    openSwitch = !digitalRead(OPEN_PIN);
+    closedSwitch = !digitalRead(CLOSED_PIN);
+
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis > interval) {
         previousMillis = currentMillis;
@@ -141,8 +149,7 @@ void loop()
     }
 
     if (state == State::CLOSING) {
-        int closed = digitalRead(CLOSED_PIN);
-        if (closed) {
+        if (closedSwitch) {
             Serial.println("Closed");
             motor.stop();
             state = State::CLOSED;
@@ -150,8 +157,7 @@ void loop()
             motor.move(stepsAtOnce);
         }
     } else if (state == State::OPENING) {
-        int open = digitalRead(OPEN_PIN);
-        if (open) {
+        if (openSwitch) {
             motor.stop();
             state = State::OPEN;
         } else {
