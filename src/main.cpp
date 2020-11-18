@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 
 #include <AccelStepper.h>
 #include <BH1750.h>
@@ -126,7 +127,7 @@ void setup()
         AsyncResponseStream* response = request->beginResponseStream("application/json");
         const int capacity = JSON_OBJECT_SIZE(10);
         StaticJsonDocument<capacity> results;
-        results["version"] = "1.2.3";
+        results["version"] = "1.2.6";
         results["light"] = state.currentLight;
         results["openLightLimit"] = config.openLightLimit;
         results["closeLightLimit"] = config.closeLightLimit;
@@ -139,6 +140,34 @@ void setup()
     });
 
     server.begin();
+
+    ArduinoOTA.setHostname("chickens");
+    ArduinoOTA.onStart([]() {
+        Serial.println("Start");
+    });
+    ArduinoOTA.onEnd([]() {
+        Serial.println("\nEnd");
+    });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+        Serial.printf("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR) {
+            Serial.println("Auth Failed");
+        } else if (error == OTA_BEGIN_ERROR) {
+            Serial.println("Begin Failed");
+        } else if (error == OTA_CONNECT_ERROR) {
+            Serial.println("Connect Failed");
+        } else if (error == OTA_RECEIVE_ERROR) {
+            Serial.println("Receive Failed");
+        } else if (error == OTA_END_ERROR) {
+            Serial.println("End Failed");
+        } else {
+            Serial.printf("OTA error %d\n", error);
+        }
+    });
+    ArduinoOTA.begin();
 }
 
 unsigned long previousMillis = 0;
@@ -148,6 +177,8 @@ unsigned int stepsAtOnce = 100;
 
 void loop()
 {
+    ArduinoOTA.handle();
+
     state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
