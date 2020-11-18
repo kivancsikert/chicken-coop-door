@@ -19,20 +19,28 @@ const int stepsPerRevolution = 2048;
 AccelStepper motor(AccelStepper::FULL4WIRE, D0, D2, D1, D3);
 
 BH1750 lightMeter;
-/**
- * Light required to be above limit to open the door.
- */
-float openLightLimit = 120;
 
-/**
- * Light required to be below limit to open the door.
- */
-float closeLightLimit = 50;
+struct Config {
+    /**
+     * Light required to be above limit to open the door.
+     */
+    float openLightLimit = 120;
 
-/**
- * The current level of light.
- */
-float currentLight = 0;
+    /**
+     * Light required to be below limit to open the door.
+     */
+    float closeLightLimit = 50;
+
+    /**
+     * Whether to invert the "gate open" switch or not.
+     */
+    bool invertOpenSwitch = false;
+
+    /**
+     * Whether to invert the "gate close" switch or not.
+     */
+    bool invertCloseSwitch = false;
+} config;
 
 enum class GateState {
     OPEN,
@@ -41,12 +49,29 @@ enum class GateState {
     CLOSING
 };
 
-GateState gateState = GateState::OPEN;
+struct State {
+    /**
+     * The current level of light.
+     */
+    float currentLight = 0;
+
+    /**
+     * The state of the gate.
+     */
+    GateState gateState = GateState::OPEN;
+
+    /**
+     * Whether the "gate open" switch is engaged or not.
+     */
+    bool openSwitch = false;
+
+    /**
+     * Whether the "gate closed" switch is engaged or not.
+     */
+    bool closedSwitch = false;
+} state;
 
 AsyncWebServer server(80);
-
-bool openSwitch = false;
-bool closedSwitch = false;
 
 void setup()
 {
@@ -102,13 +127,13 @@ void setup()
         const int capacity = JSON_OBJECT_SIZE(10);
         StaticJsonDocument<capacity> results;
         results["version"] = "1.2.3";
-        results["light"] = currentLight;
-        results["openLightLimit"] = openLightLimit;
-        results["closeLightLimit"] = closeLightLimit;
+        results["light"] = state.currentLight;
+        results["openLightLimit"] = config.openLightLimit;
+        results["closeLightLimit"] = config.closeLightLimit;
         results["motor_position"] = motor.currentPosition();
-        results["openSwitch"] = openSwitch;
-        results["closedSwitch"] = closedSwitch;
-        results["gateState"] = static_cast<int>(gateState);
+        results["openSwitch"] = state.openSwitch;
+        results["closedSwitch"] = state.closedSwitch;
+        results["gateState"] = static_cast<int>(state.gateState);
         serializeJson(results, *response);
         request->send(response);
     });
@@ -123,43 +148,43 @@ unsigned int stepsAtOnce = 100;
 
 void loop()
 {
-    openSwitch = !digitalRead(OPEN_PIN);
-    closedSwitch = !digitalRead(CLOSED_PIN);
+    state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
+    state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis > interval) {
         previousMillis = currentMillis;
-        currentLight = lightMeter.readLightLevel();
-        if (currentLight < closeLightLimit && gateState == GateState::OPEN) {
+        state.currentLight = lightMeter.readLightLevel();
+        if (state.currentLight < config.closeLightLimit && state.gateState == GateState::OPEN) {
             Serial.println("Closing...");
-            gateState = GateState::CLOSING;
-        } else if (currentLight > openLightLimit && gateState == GateState::CLOSED) {
+            state.gateState = GateState::CLOSING;
+        } else if (state.currentLight > config.openLightLimit && state.gateState == GateState::CLOSED) {
             Serial.println("Opening...");
-            gateState = GateState::OPENING;
+            state.gateState = GateState::OPENING;
         }
-        Serial.printf("Light: %f, state: %d\n", currentLight, gateState);
+        Serial.printf("Light: %f, state: %d\n", state.currentLight, state.gateState);
     }
 
     if (!motor.run()) {
-        if (gateState == GateState::OPEN || gateState == GateState::CLOSED) {
+        if (state.gateState == GateState::OPEN || state.gateState == GateState::CLOSED) {
             motor.disableOutputs();
             delay(250);
             return;
         }
     }
 
-    if (gateState == GateState::CLOSING) {
-        if (closedSwitch) {
+    if (state.gateState == GateState::CLOSING) {
+        if (state.closedSwitch) {
             Serial.println("Closed");
             motor.stop();
-            gateState = GateState::CLOSED;
+            state.gateState = GateState::CLOSED;
         } else {
             motor.move(stepsAtOnce);
         }
-    } else if (gateState == GateState::OPENING) {
-        if (openSwitch) {
+    } else if (state.gateState == GateState::OPENING) {
+        if (state.openSwitch) {
             motor.stop();
-            gateState = GateState::OPEN;
+            state.gateState = GateState::OPEN;
         } else {
             motor.move(-stepsAtOnce);
         }
