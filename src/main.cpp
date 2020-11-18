@@ -73,9 +73,29 @@ struct State {
 } state;
 
 AsyncWebServer server(80);
+AsyncWebSocket webSocket("/log");
+
+void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type,
+    void* arg, uint8_t* data, size_t len)
+{
+    switch (type) {
+    case WS_EVT_CONNECT:
+        Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+        break;
+    case WS_EVT_DISCONNECT:
+        Serial.printf("WebSocket client #%u disconnected\n", client->id());
+        break;
+    case WS_EVT_DATA:
+        // Do nothing
+        break;
+    case WS_EVT_PONG:
+    case WS_EVT_ERROR:
+        break;
+    }
+}
 
 void LOG(String message) {
-    Serial.println(message);
+    webSocket.textAll(message);
 }
 
 void setup()
@@ -143,6 +163,9 @@ void setup()
         request->send(response);
     });
 
+    webSocket.onEvent(onWebSocketEvent);
+    server.addHandler(&webSocket);
+
     server.begin();
 
     ArduinoOTA.setHostname("chickens");
@@ -156,7 +179,7 @@ void setup()
         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
     });
     ArduinoOTA.onError([](ota_error_t error) {
-        Serial.printf("Error[%u]: ", error);
+        Serial.printf("Web socket error[%u]\n", error);
         if (error == OTA_AUTH_ERROR) {
             Serial.println("Auth Failed");
         } else if (error == OTA_BEGIN_ERROR) {
@@ -167,6 +190,8 @@ void setup()
             Serial.println("Receive Failed");
         } else if (error == OTA_END_ERROR) {
             Serial.println("End Failed");
+        } else {
+            Serial.println("Other error");
         }
     });
     ArduinoOTA.begin();
@@ -180,6 +205,7 @@ unsigned int stepsAtOnce = 100;
 void loop()
 {
     ArduinoOTA.handle();
+    webSocket.cleanupClients();
 
     state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
