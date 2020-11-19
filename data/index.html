@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@0.21.0/dist/axios.min.js"></script>
@@ -10,6 +11,9 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
         integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     <style>
+        .log.container {
+            font-family: monospace;
+        }
     </style>
 </head>
 
@@ -24,10 +28,15 @@
                 </tr>
             </tbody>
         </table>
+        <div class="log container">
+            <div class="row" v-for="logEvent in logEvents">
+                {{ new Date(startTime + logEvent.timeStamp).toLocaleString() }} – {{ logEvent.data }}
+            </div>
+        </div>
     </div>
 </body>
 <script>
-    new Vue({
+    const app = new Vue({
         el: '#app',
         data: {
             results: {
@@ -36,7 +45,9 @@
                 state: 0,
                 top: true,
                 bottom: false
-            }
+            },
+            logEvents: [],
+            startTime: Date.now()
         },
         methods: {
             loadData: function () {
@@ -55,14 +66,16 @@
 
             console.log("Starting connection to WebSocket Server");
             this.connection = new WebSocket(`ws://${window.location.host}/log`);
+            // this.connection = new WebSocket(`ws://chickens/log`);
 
-            this.connection.onmessage = function (event) {
-                console.log(event.data);
+            this.connection.onmessage = (event) => {
+                console.debug(event);
+                this.logEvents.unshift(event);
             }
 
-            this.connection.onopen = function (event) {
-                console.log(event.data)
-                console.log("Successfully connected to the echo websocket server...")
+            this.connection.onopen = (event) => {
+                console.log("Successfully connected to websocket server...")
+                console.debug(event);
             }
         }
     });
