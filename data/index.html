@@ -40,10 +40,10 @@
         },
         methods: {
             loadData: function () {
-                console.log("Querying...");
+                console.debug("Querying...");
                 axios.get('/status')
                     .then(response => {
-                        console.log("Response", response);
+                        console.debug("Response", response);
                         this.results = response.data;
                     })
                     .catch(error => console.log(error));
@@ -52,6 +52,18 @@
         mounted: function () {
             this.loadData();
             setInterval(this.loadData, 1000);
+
+            console.log("Starting connection to WebSocket Server");
+            this.connection = new WebSocket(`ws://${window.location.host}/log`);
+
+            this.connection.onmessage = function (event) {
+                console.log(event.data);
+            }
+
+            this.connection.onopen = function (event) {
+                console.log(event.data)
+                console.log("Successfully connected to the echo websocket server...")
+            }
         }
     });
 </script>
