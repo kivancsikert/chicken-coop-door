@@ -238,7 +238,7 @@ void loop()
             motor.stop();
             state.gateState = GateState::CLOSED;
         } else {
-            motor.move(stepsAtOnce);
+            motor.move(-stepsAtOnce);
         }
     } else if (state.gateState == GateState::OPENING) {
         if (state.openSwitch) {
@@ -246,7 +246,7 @@ void loop()
             motor.stop();
             state.gateState = GateState::OPEN;
         } else {
-            motor.move(-stepsAtOnce);
+            motor.move(stepsAtOnce);
         }
     }
 }
