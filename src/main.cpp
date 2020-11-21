@@ -114,7 +114,8 @@ void setup()
     motor.setSpeed(500);
     motor.setAcceleration(500);
 
-    Wire.begin(9, 10);
+    Wire.begin(D7, D4);
+    Serial.println("Connecting to light sensor...");
     if (lightMeter.begin()) {
         Serial.println("BH1750 initialised");
     } else {
@@ -125,13 +126,13 @@ void setup()
     WiFi.hostname("chickens");
     delay(500);
     WiFi.beginSmartConfig();
-    Serial.print("WiFi connecting via SmartConfig");
+    Serial.print("WiFi connecting via SmartConfig... ");
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
-        Serial.println(WiFi.smartConfigDone());
+        // Serial.println(WiFi.smartConfigDone());
     }
-    Serial.print("WiFi connected, SSID: ");
+    Serial.print(" connected, SSID: ");
     Serial.print(WiFi.SSID());
     Serial.print(", IP address: ");
     Serial.print(WiFi.localIP());
