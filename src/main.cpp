@@ -76,7 +76,7 @@ AsyncWebServer server(80);
 AsyncWebSocket webSocket("/log");
 
 void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type,
-    void* arg, uint8_t* data, size_t len)
+    void* arg, uint8_t* data, size_t length)
 {
     switch (type) {
     case WS_EVT_CONNECT:
@@ -85,9 +85,33 @@ void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsE
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         break;
-    case WS_EVT_DATA:
-        // Do nothing
-        break;
+    case WS_EVT_DATA: {
+        AwsFrameInfo* info = (AwsFrameInfo*)arg;
+        if (info->final && (info->index == 0) && (info->len == length)) {
+            if (info->opcode == WS_TEXT) {
+                if (strncmp((char*)data, "status", length) == 0) {
+                    const int capacity = JSON_OBJECT_SIZE(10);
+                    StaticJsonDocument<capacity> message;
+                    message["type"] = "status";
+                    message["version"] = "1.2.7";
+                    message["light"] = state.currentLight;
+                    message["openLightLimit"] = config.openLightLimit;
+                    message["closeLightLimit"] = config.closeLightLimit;
+                    message["motorPosition"] = motor.currentPosition();
+                    message["openSwitch"] = state.openSwitch;
+                    message["closedSwitch"] = state.closedSwitch;
+                    message["gateState"] = static_cast<int>(state.gateState);
+                    char buffer[1024];
+                    serializeJson(message, buffer);
+                    client->text(buffer);
+                }
+            } else {
+                Serial.println("Received a ws message, but it isn't text");
+            }
+        } else {
+            Serial.println("Received a ws message, but it didn't fit into one frame");
+        }
+    } break;
     case WS_EVT_PONG:
     case WS_EVT_ERROR:
         break;
@@ -147,22 +171,6 @@ void setup()
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
         request->send(LittleFS, "/index.html", "text/html");
-    });
-
-    server.on("/status", HTTP_GET, [](AsyncWebServerRequest* request) {
-        AsyncResponseStream* response = request->beginResponseStream("application/json");
-        const int capacity = JSON_OBJECT_SIZE(10);
-        StaticJsonDocument<capacity> results;
-        results["version"] = "1.2.6";
-        results["light"] = state.currentLight;
-        results["openLightLimit"] = config.openLightLimit;
-        results["closeLightLimit"] = config.closeLightLimit;
-        results["motorPosition"] = motor.currentPosition();
-        results["openSwitch"] = state.openSwitch;
-        results["closedSwitch"] = state.closedSwitch;
-        results["gateState"] = static_cast<int>(state.gateState);
-        serializeJson(results, *response);
-        request->send(response);
     });
 
     webSocket.onEvent(onWebSocketEvent);
