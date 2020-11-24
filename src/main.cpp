@@ -156,7 +156,7 @@ void setup()
         results["light"] = state.currentLight;
         results["openLightLimit"] = config.openLightLimit;
         results["closeLightLimit"] = config.closeLightLimit;
-        results["motor_position"] = motor.currentPosition();
+        results["motorPosition"] = motor.currentPosition();
         results["openSwitch"] = state.openSwitch;
         results["closedSwitch"] = state.closedSwitch;
         results["gateState"] = static_cast<int>(state.gateState);
