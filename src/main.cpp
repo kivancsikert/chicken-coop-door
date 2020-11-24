@@ -103,8 +103,8 @@ void setup()
     Serial.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(OPEN_PIN, INPUT);
-    pinMode(CLOSED_PIN, INPUT);
+    pinMode(OPEN_PIN, INPUT_PULLUP);
+    pinMode(CLOSED_PIN, INPUT_PULLUP);
 
     while (!Serial) {
         delay(100);
