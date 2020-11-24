@@ -64,9 +64,10 @@
             this.loadData();
             setInterval(this.loadData, 1000);
 
-            console.log("Starting connection to WebSocket Server");
-            this.connection = new WebSocket(`ws://${window.location.host}/log`);
-            // this.connection = new WebSocket(`ws://chickens/log`);
+            const webSocketHost = window.location.hostname == "localhost"
+                ? "chickens"
+                : window.location.host;
+            this.connection = new WebSocket(`ws://${webSocketHost}/log`);
 
             this.connection.onmessage = (event) => {
                 console.debug(event);
