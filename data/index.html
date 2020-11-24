@@ -30,7 +30,7 @@
         </table>
         <div class="log container">
             <div class="row" v-for="logEvent in logEvents">
-                {{ new Date(startTime + logEvent.timeStamp).toLocaleString() }} – {{ logEvent.data }}
+                {{ new Date(startTime + logEvent.timestamp).toLocaleString() }} – {{ logEvent.message }}
             </div>
         </div>
     </div>
@@ -50,6 +50,23 @@
             startTime: Date.now()
         },
         methods: {
+            handleEvent: function (event) {
+                const payload = JSON.parse(event.data);
+                switch (payload.type) {
+                    case "log":
+                        this.logEvents.unshift({
+                            timestamp: event.timeStamp,
+                            message: payload.message
+                        });
+                        break;
+                    default:
+                        this.logEvents.unshift({
+                            timestamp: event.timeStamp,
+                            message: `Unknown payload type: ${payload.type}`
+                        });
+                        break;
+                }
+            },
             loadData: function () {
                 console.debug("Querying...");
                 axios.get('/status')
@@ -71,7 +88,7 @@
 
             this.connection.onmessage = (event) => {
                 console.debug(event);
-                this.logEvents.unshift(event);
+                this.handleEvent(event);
             }
 
             this.connection.onopen = (event) => {

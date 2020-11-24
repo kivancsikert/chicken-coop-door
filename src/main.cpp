@@ -94,8 +94,9 @@ void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsE
     }
 }
 
-void LOG(String message) {
-    webSocket.textAll(message);
+void LOG(const char* message)
+{
+    webSocket.printfAll("{\"type\": \"log\", \"message\": \"%s\"}", message);
 }
 
 void setup()
