@@ -89,21 +89,33 @@ void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsE
         AwsFrameInfo* info = (AwsFrameInfo*)arg;
         if (info->final && (info->index == 0) && (info->len == length)) {
             if (info->opcode == WS_TEXT) {
-                if (strncmp((char*)data, "status", length) == 0) {
-                    const int capacity = JSON_OBJECT_SIZE(10);
-                    StaticJsonDocument<capacity> message;
-                    message["type"] = "status";
-                    message["version"] = "1.2.7";
-                    message["light"] = state.currentLight;
-                    message["openLightLimit"] = config.openLightLimit;
-                    message["closeLightLimit"] = config.closeLightLimit;
-                    message["motorPosition"] = motor.currentPosition();
-                    message["openSwitch"] = state.openSwitch;
-                    message["closedSwitch"] = state.closedSwitch;
-                    message["gateState"] = static_cast<int>(state.gateState);
-                    char buffer[1024];
-                    serializeJson(message, buffer);
-                    client->text(buffer);
+                DynamicJsonDocument request(length + 1);
+                deserializeJson(request, (char*)data);
+                if (request.containsKey("command")) {
+                    String command = request["command"];
+                    if (command == "update") {
+                        if (request.containsKey("gateState")) {
+                            state.gateState = static_cast<GateState>((int) request["gateState"]);
+                        }
+                        if (request.containsKey("motorPosition")) {
+                            motor.moveTo(request["motorPosition"]);
+                        }
+                    } else if (command == "status") {
+                        const int capacity = JSON_OBJECT_SIZE(10);
+                        StaticJsonDocument<capacity> message;
+                        message["type"] = "status";
+                        message["version"] = "1.2.7";
+                        message["light"] = state.currentLight;
+                        message["openLightLimit"] = config.openLightLimit;
+                        message["closeLightLimit"] = config.closeLightLimit;
+                        message["motorPosition"] = motor.currentPosition();
+                        message["openSwitch"] = state.openSwitch;
+                        message["closedSwitch"] = state.closedSwitch;
+                        message["gateState"] = static_cast<int>(state.gateState);
+                        char buffer[1024];
+                        serializeJson(message, buffer);
+                        client->text(buffer);
+                    }
                 }
             } else {
                 Serial.println("Received a ws message, but it isn't text");
