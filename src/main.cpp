@@ -1,3 +1,16 @@
+#ifdef ESP32
+#include "pins_arduino_ttgo_call.h"
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <SPIFFS.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#define SPIFFS LittleFS
+#include <LittleFS.h>
+#endif
+#include <ESPAsyncWebServer.h>
+
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 
@@ -5,19 +18,39 @@
 #include <BH1750.h>
 #include <Wire.h>
 
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <LittleFS.h>
-
 #include <ArduinoJson.h>
+
+#ifdef ESP32
+
+#define OPEN_PIN   GPIO_NUM_34
+#define CLOSED_PIN GPIO_NUM_32
+
+#define MOTOR_PIN1 GPIO_NUM_33
+#define MOTOR_PIN2 GPIO_NUM_25
+#define MOTOR_PIN3 GPIO_NUM_26
+#define MOTOR_PIN4 GPIO_NUM_27
+
+#define LIGHT_SDA GPIO_NUM_4
+#define LIGHT_SDC GPIO_NUM_14
+
+#elif defined(ESP8266)
 
 #define OPEN_PIN D5
 #define CLOSED_PIN D6
 
+#define MOTOR_PIN1 D0
+#define MOTOR_PIN2 D1
+#define MOTOR_PIN3 D2
+#define MOTOR_PIN4 D3
+
+#define LIGHT_SDA D7
+#define LIGHT_SDC D4
+
+#endif
+
 const int stepsPerRevolution = 2048;
 
-AccelStepper motor(AccelStepper::FULL4WIRE, D0, D2, D1, D3);
+AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4);
 
 BH1750 lightMeter;
 
@@ -147,11 +180,34 @@ void setup()
         delay(100);
     }
 
+    Serial.println("Starting up file system...");
+#ifdef ESP32
+    if (!SPIFFS.begin()) {
+        Serial.println("Failed.");
+    }
+
+    Serial.println("Contents:");
+    File root = SPIFFS.open("/");
+    while (true) {
+        File file = root.openNextFile();
+        if (!file) {
+            break;
+        }
+        Serial.print(" - ");
+        Serial.println(file.name());
+    }
+#elif defined(ESP8266)
+    LittleFSConfig cfg;
+    cfg.setAutoFormat(true);
+    LittleFS.setConfig(cfg);
+    LittleFS.begin();
+#endif
+
     motor.setMaxSpeed(500);
     motor.setSpeed(500);
     motor.setAcceleration(500);
 
-    Wire.begin(D7, D4);
+    Wire.begin(LIGHT_SDA, LIGHT_SDC);
     Serial.println("Connecting to light sensor...");
     if (lightMeter.begin()) {
         Serial.println("BH1750 initialised");
@@ -160,29 +216,27 @@ void setup()
     }
 
     WiFi.mode(WIFI_AP_STA);
-    WiFi.hostname("chickens");
     delay(500);
     WiFi.beginSmartConfig();
-    Serial.print("WiFi connecting via SmartConfig... ");
+    Serial.printf("WiFi connecting via SmartConfig...");
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
-        // Serial.println(WiFi.smartConfigDone());
+        // Serial.print(WiFi.smartConfigDone());
+        // Serial.print(" ");
+        // Serial.println(WiFi.status());
     }
+    WiFi.softAPsetHostname("chickens");
     Serial.print(" connected, SSID: ");
     Serial.print(WiFi.SSID());
     Serial.print(", IP address: ");
     Serial.print(WiFi.localIP());
     Serial.print(", hostname: ");
-    Serial.println(WiFi.hostname());
-
-    LittleFSConfig cfg;
-    cfg.setAutoFormat(true);
-    LittleFS.setConfig(cfg);
-    LittleFS.begin();
+    Serial.println(WiFi.softAPgetHostname());
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(LittleFS, "/index.html", "text/html");
+        Serial.println("Request for main page...");
+        request->send(SPIFFS, "/index.html", "text/html");
     });
 
     webSocket.onEvent(onWebSocketEvent);
@@ -252,6 +306,7 @@ void loop()
             return;
         }
     }
+    delay(25);
 
     if (state.gateState == GateState::CLOSING) {
         if (state.closedSwitch) {
