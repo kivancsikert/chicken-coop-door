@@ -30,8 +30,8 @@
 #define MOTOR_PIN3 GPIO_NUM_26
 #define MOTOR_PIN4 GPIO_NUM_27
 
-#define LIGHT_SDA GPIO_NUM_4
-#define LIGHT_SDC GPIO_NUM_14
+#define LIGHT_SDA  GPIO_NUM_4
+#define LIGHT_SCL  GPIO_NUM_14
 
 #elif defined(ESP8266)
 
@@ -173,8 +173,8 @@ void setup()
     Serial.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(OPEN_PIN, INPUT_PULLUP);
-    pinMode(CLOSED_PIN, INPUT_PULLUP);
+    pinMode(OPEN_PIN, INPUT);
+    pinMode(CLOSED_PIN, INPUT);
 
     while (!Serial) {
         delay(100);
@@ -207,7 +207,7 @@ void setup()
     motor.setSpeed(500);
     motor.setAcceleration(500);
 
-    Wire.begin(LIGHT_SDA, LIGHT_SDC);
+    Wire.begin(LIGHT_SDA, LIGHT_SCL);
     Serial.println("Connecting to light sensor...");
     if (lightMeter.begin()) {
         Serial.println("BH1750 initialised");
@@ -306,7 +306,6 @@ void loop()
             return;
         }
     }
-    delay(25);
 
     if (state.gateState == GateState::CLOSING) {
         if (state.closedSwitch) {
