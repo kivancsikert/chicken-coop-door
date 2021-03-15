@@ -22,16 +22,16 @@
 
 #ifdef ESP32
 
-#define OPEN_PIN   GPIO_NUM_34
-#define CLOSED_PIN GPIO_NUM_32
+#define MOTOR_PIN1 GPIO_NUM_32
+#define MOTOR_PIN2 GPIO_NUM_33
+#define MOTOR_PIN3 GPIO_NUM_25
+#define MOTOR_PIN4 GPIO_NUM_26
 
-#define MOTOR_PIN1 GPIO_NUM_33
-#define MOTOR_PIN2 GPIO_NUM_25
-#define MOTOR_PIN3 GPIO_NUM_26
-#define MOTOR_PIN4 GPIO_NUM_27
+#define LIGHT_SDA  GPIO_NUM_13
+#define LIGHT_SCL  GPIO_NUM_15
 
-#define LIGHT_SDA  GPIO_NUM_4
-#define LIGHT_SCL  GPIO_NUM_14
+#define OPEN_PIN   GPIO_NUM_14
+#define CLOSED_PIN GPIO_NUM_12
 
 #elif defined(ESP8266)
 
@@ -68,12 +68,12 @@ struct Config {
     /**
      * Whether to invert the "gate open" switch or not.
      */
-    bool invertOpenSwitch = false;
+    bool invertOpenSwitch = true;
 
     /**
      * Whether to invert the "gate close" switch or not.
      */
-    bool invertCloseSwitch = false;
+    bool invertCloseSwitch = true;
 } config;
 
 enum class GateState {
@@ -173,8 +173,10 @@ void setup()
     Serial.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(OPEN_PIN, INPUT);
-    pinMode(CLOSED_PIN, INPUT);
+    pinMode(OPEN_PIN, INPUT_PULLUP);
+    pinMode(CLOSED_PIN, INPUT_PULLUP);
+    pinMode(LIGHT_SDA, INPUT);
+    pinMode(LIGHT_SCL, INPUT);
 
     while (!Serial) {
         delay(100);
