@@ -53,6 +53,22 @@
                         :disabled="targetMotorPosition == results.motorPosition">Move</button>
                 </div>
             </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">WiFi config</label>
+                <div class="col-sm-2">
+                    <input class="form-control" placeholder="SSID" v-model="wifi.ssid">
+                </div>
+                <div class="col-sm-2">
+                    <input class="form-control" placeholder="Password" type="password" v-model="wifi.password">
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-secondary" type="button" @click="setWifi" :disabled="!wifi.ssid || !wifi.password">Configure</button>
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-danger" type="button" @click="removeWifi">Use SmartConfig</button>
+                </div>
+            </div>
         </form>
         <table class="table">
             <tbody>
@@ -83,6 +99,10 @@
                 openSwitch: true,
                 closeSwitch: false,
                 gateState: 0
+            },
+            wifi: {
+                ssid: "",
+                password: ""
             },
             logEvents: [],
             startTime: Date.now(),
@@ -127,6 +147,20 @@
                     command: "update",
                     motorPosition: this.targetMotorPosition
                 });
+            },
+            setWifi: function () {
+                this.sendCommand({
+                    command: "set-wifi",
+                    ssid: this.wifi.ssid,
+                    password: this.wifi.password
+                });
+            },
+            removeWifi: function () {
+                this.sendCommand({
+                    command: "remove-wifi"
+                });
+                wifi.ssid = "";
+                wifi.password = "";
             }
         },
         mounted: function () {

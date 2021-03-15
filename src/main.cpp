@@ -133,6 +133,17 @@ void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsE
                         if (request.containsKey("motorPosition")) {
                             motor.moveTo(request["motorPosition"]);
                         }
+                    } else if (command == "set-wifi") {
+                        File wifiConfig = SPIFFS.open("/wifi.txt", FILE_WRITE);
+                        String ssid = request["ssid"];
+                        String password = request["password"];
+                        wifiConfig.print(ssid);
+                        wifiConfig.print("\n");
+                        wifiConfig.print(password);
+                        wifiConfig.print("\n");
+                        wifiConfig.close();
+                    } else if (command == "remove-wifi") {
+                        SPIFFS.remove("/wifi.txt");
                     } else if (command == "status") {
                         const int capacity = JSON_OBJECT_SIZE(10);
                         StaticJsonDocument<capacity> message;
@@ -219,8 +230,19 @@ void setup()
 
     WiFi.mode(WIFI_AP_STA);
     delay(500);
-    WiFi.beginSmartConfig();
-    Serial.printf("WiFi connecting via SmartConfig...");
+    if (SPIFFS.exists("/wifi.txt")) {
+        File wifiConfig = SPIFFS.open("/wifi.txt", FILE_READ);
+        String ssid = wifiConfig.readStringUntil('\n');
+        String password = wifiConfig.readStringUntil('\n');
+        wifiConfig.close();
+        Serial.print("Using stored WIFI configuration to connect to ");
+        Serial.print(ssid);
+        Serial.print("...");
+        WiFi.begin(ssid.c_str(), password.c_str());
+    } else {
+        Serial.print("Couldn't find WIFI config, using SmartConfig...");
+        WiFi.beginSmartConfig();
+    }
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
