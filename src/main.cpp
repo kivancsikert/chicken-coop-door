@@ -241,10 +241,14 @@ void setup() {
         Serial.print("Using stored WIFI configuration to connect to ");
         Serial.print(ssid);
         Serial.print("...");
-        WiFi.begin(ssid.c_str(), password.c_str());
+        wl_status_t wifiBeginStatus = WiFi.begin(ssid.c_str(), password.c_str());
+        Serial.print(wifiBeginStatus);
     } else {
         Serial.print("Couldn't find WIFI config, using SmartConfig...");
-        WiFi.beginSmartConfig();
+        bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
+        if (!smartConfigBeginSuccess) {
+            Serial.println(" unsuccessful");
+        }
     }
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
