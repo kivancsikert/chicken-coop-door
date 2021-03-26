@@ -28,7 +28,7 @@ void MqttReporter::begin(Client* netClient, const JsonDocument& config) {
     String deviceId = config["deviceId"];
     String privateKey = config["privateKey"];
 
-    Serial.printf("Connecting to Google Cloud project '%s' in '%s', registry '%s' as device '%s'\n",
+    Serial.printf("Using Google Cloud via MQTT on project '%s' in '%s', registry '%s' as device '%s'\n",
         projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str());
 
     device = new CloudIoTCoreDevice(
@@ -75,7 +75,7 @@ String MqttReporter::getJwt() {
 }
 
 void MqttReporter::messageReceived(String& topic, String& payload) {
-    Serial.println("incoming: " + topic + " - " + payload);
+    Serial.println("Received '" + topic + "': " + payload);
 }
 
 void MqttReporter::loop() {
