@@ -16,9 +16,13 @@ void messageReceived(String& topic, String& payload) {
 }
 
 void MqttReporter::begin(Client* netClient, const JsonDocument& config) {
-    configTime(0, 0, "0.pool.ntp.org", "1.pool.ntp.org");
-    Serial.println("Waiting on time sync...");
-    while (time(nullptr) < 1510644967) {
+    configTime(0, 0, "pool.ntp.org");
+    while (true) {
+        time_t currentTime = time(nullptr);
+        if (currentTime > 1616800541) {
+            Serial.printf("Current time is %ld\n", currentTime);
+            break;
+        }
         delay(10);
     }
 
