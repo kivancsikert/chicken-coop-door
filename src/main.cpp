@@ -273,12 +273,14 @@ void setup() {
     ota.begin("chickens");
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
-    DynamicJsonDocument iotConfigJson(iotConfigFile.size() + 1);
+    DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
     DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
     if (error) {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
-    mqttReporter.begin(new WiFiClientSecure(), iotConfigJson);
+    WiFiClientSecure* wifiClient = new WiFiClientSecure();
+    wifiClient->setCACert(root_cert.c_str());
+    mqttReporter.begin(wifiClient, iotConfigJson);
 }
 
 unsigned long previousMillis = 0;
@@ -289,6 +291,7 @@ unsigned int stepsAtOnce = 100;
 void loop() {
     ota.handle();
     webSocket.cleanupClients();
+    mqttReporter.loop();
 
     state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;

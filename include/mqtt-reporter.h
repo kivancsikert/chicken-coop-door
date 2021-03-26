@@ -7,6 +7,8 @@
 #include <CloudIoTCore.h>
 #include <CloudIoTCoreMqtt.h>
 
+extern const String root_cert;
+
 class MqttReporter {
 public:
     MqttReporter();
@@ -22,8 +24,12 @@ private:
     friend void messageReceived(String& topic, String& payload);
 
     CloudIoTCoreMqtt* mqtt;
+    MQTTClient* mqttClient;
     CloudIoTCoreDevice* device;
-    int jwtExpirationInSeconds = 3600;
+
+    // Time (seconds) to expire token += 20 minutes for drift
+    // Maximum 24H (3600*24)
+    const int jwtExpirationInSeconds = 60 * 20;
 };
 
 extern MqttReporter mqttReporter;
