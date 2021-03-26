@@ -91,8 +91,9 @@ MqttReporter mqttReporter;
 
 // To get the certificate for your region run:
 //   openssl s_client -showcerts -connect mqtt.googleapis.com:8883
-// for standard mqtt or for LTS:
-//   openssl s_client -showcerts -connect mqtt.2030.ltsapis.goog:8883
+// for standard mqtt or for LTS, see
+//   https://cloud.google.com/iot/docs/how-tos/mqtt-bridge#downloading_mqtt_server_certificates
+//   https://pki.goog/gtsltsr/gtsltsr.crt
 // Copy the certificate (all lines between and including ---BEGIN CERTIFICATE---
 // and --END CERTIFICATE--) to root.cert and put here on the root_cert variable.
 
