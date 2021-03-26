@@ -1,6 +1,7 @@
 #ifdef ESP32
 #include "pins_arduino_ttgo_call.h"
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 
 #include <AsyncTCP.h>
 #include <SPIFFS.h>
@@ -12,14 +13,16 @@
 #endif
 #include <ESPAsyncWebServer.h>
 
-#include <Arduino.h>
 #include "ota.h"
+#include <Arduino.h>
 
 #include <AccelStepper.h>
 #include <BH1750.h>
 #include <Wire.h>
 
 #include <ArduinoJson.h>
+
+#include "mqtt-reporter.h"
 
 #ifdef ESP32
 
@@ -268,6 +271,14 @@ void setup() {
 
     server.begin();
     ota.begin("chickens");
+
+    File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
+    DynamicJsonDocument iotConfigJson(iotConfigFile.size() + 1);
+    DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
+    if (error) {
+        Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
+    }
+    mqttReporter.begin(new WiFiClientSecure(), iotConfigJson);
 }
 
 unsigned long previousMillis = 0;
