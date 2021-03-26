@@ -68,9 +68,9 @@ void MqttReporter::begin(Client* netClient, const JsonDocument& config) {
 
 String MqttReporter::getJwt() {
     time_t iss = time(nullptr);
-    Serial.println("Refreshing JWT");
+    // Serial.println("Refreshing JWT");
     String jwt = device->createJWT(iss, jwtExpirationInSeconds);
-    Serial.println(jwt);
+    // Serial.println(jwt);
     return jwt;
 }
 
