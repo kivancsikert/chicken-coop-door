@@ -45,6 +45,7 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
         10000    // timeout
     );
     mqtt = new CloudIoTCoreMqtt(mqttClient, netClient, device);
+    mqtt->setLogConnect(false);
     mqtt->setUseLts(true);
     mqtt->startMQTT();
 
@@ -60,12 +61,10 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
 
     mqtt->mqttConnect();
 
-    delay(1500);
-
     Serial.printf("State topic: %s\n", device->getStateTopic().c_str());
     Serial.printf("Events topic: %s\n", device->getEventsTopic().c_str());
     Serial.printf("Publishing state: %d\n", mqtt->publishState("UP AND RUNNING"));
-    // Serial.printf("Publishing telemetry: %d\n", mqtt->publishTelemetry("UP AND RUNNING"));
+    Serial.printf("Publishing telemetry: %d\n", mqtt->publishTelemetry("Connected"));
     // Serial.printf("Publishing: %d\n", mqttClient->publish("chicken-coop-door", "HELLO"));
     mqtt->loop();
 }
