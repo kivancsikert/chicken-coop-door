@@ -22,7 +22,7 @@
 
 #include <ArduinoJson.h>
 
-#include "mqtt-reporter.h"
+#include "mqtt-handler.h"
 
 #ifdef ESP32
 
@@ -284,7 +284,7 @@ void setup() {
     }
     WiFiClientSecure* wifiClient = new WiFiClientSecure();
     wifiClient->setCACert(root_cert.c_str());
-    mqttReporter.begin(wifiClient, iotConfigJson);
+    mqttHandler.begin(wifiClient, iotConfigJson);
 }
 
 unsigned long previousMillis = 0;
@@ -295,7 +295,7 @@ unsigned int stepsAtOnce = 100;
 void loop() {
     ota.handle();
     webSocket.cleanupClients();
-    mqttReporter.loop();
+    mqttHandler.loop();
 
     state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;

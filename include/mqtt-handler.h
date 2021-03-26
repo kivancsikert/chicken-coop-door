@@ -9,9 +9,9 @@
 
 extern const String root_cert;
 
-class MqttReporter {
+class MqttHandler {
 public:
-    MqttReporter();
+    MqttHandler();
 
     void begin(Client* netClient, const JsonDocument& config);
     void loop();
@@ -32,4 +32,4 @@ private:
     const int jwtExpirationInSeconds = 60 * 20;
 };
 
-extern MqttReporter mqttReporter;
+extern MqttHandler mqttHandler;

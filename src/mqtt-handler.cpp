@@ -1,21 +1,21 @@
-#include "mqtt-reporter.h"
+#include "mqtt-handler.h"
 #include <SPIFFS.h>
 
-MqttReporter::MqttReporter() {
+MqttHandler::MqttHandler() {
 }
 
 String getJwt() {
-    return mqttReporter.getJwt();
+    return mqttHandler.getJwt();
 }
 
 // The MQTT callback function for commands and configuration updates
 // This is were incoming command from the gateway gets saved,
 // to forward to the delegate device
 void messageReceived(String& topic, String& payload) {
-    mqttReporter.messageReceived(topic, payload);
+    mqttHandler.messageReceived(topic, payload);
 }
 
-void MqttReporter::begin(Client* netClient, const JsonDocument& config) {
+void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
     configTime(0, 0, "pool.ntp.org");
     while (true) {
         time_t currentTime = time(nullptr);
@@ -70,7 +70,7 @@ void MqttReporter::begin(Client* netClient, const JsonDocument& config) {
     mqtt->loop();
 }
 
-String MqttReporter::getJwt() {
+String MqttHandler::getJwt() {
     time_t iss = time(nullptr);
     // Serial.println("Refreshing JWT");
     String jwt = device->createJWT(iss, jwtExpirationInSeconds);
@@ -78,11 +78,11 @@ String MqttReporter::getJwt() {
     return jwt;
 }
 
-void MqttReporter::messageReceived(String& topic, String& payload) {
+void MqttHandler::messageReceived(String& topic, String& payload) {
     Serial.println("Received '" + topic + "': " + payload);
 }
 
-void MqttReporter::loop() {
+void MqttHandler::loop() {
     mqtt->loop();
 
     if (!mqttClient->connected()) {
@@ -91,7 +91,7 @@ void MqttReporter::loop() {
     }
 }
 
-MqttReporter mqttReporter;
+MqttHandler mqttHandler;
 
 // To get the certificate for your region run:
 //   openssl s_client -showcerts -connect mqtt.googleapis.com:8883
