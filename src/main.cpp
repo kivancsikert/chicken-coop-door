@@ -189,8 +189,6 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(OPEN_PIN, INPUT_PULLUP);
     pinMode(CLOSED_PIN, INPUT_PULLUP);
-    pinMode(LIGHT_SDA, INPUT);
-    pinMode(LIGHT_SCL, INPUT);
 
     while (!Serial) {
         delay(100);
