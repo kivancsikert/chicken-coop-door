@@ -68,7 +68,7 @@ void Door::updateMotor() {
             motor.stop();
             gateState = GateState::CLOSED;
         } else {
-            motor.move(STEPS_AT_ONCE);
+            motor.move(-STEPS_AT_ONCE);
         }
     } else if (gateState == GateState::OPENING) {
         if (openSwitch) {
@@ -76,7 +76,7 @@ void Door::updateMotor() {
             motor.stop();
             gateState = GateState::OPEN;
         } else {
-            motor.move(-STEPS_AT_ONCE);
+            motor.move(STEPS_AT_ONCE);
         }
     }
 }
