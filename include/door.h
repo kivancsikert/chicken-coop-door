@@ -44,11 +44,12 @@ enum class GateState {
 
 class Door {
 public:
-    void begin(Config* config);
+    Door(Config& config);
+    void begin();
     void loop();
 
 private:
-    Config* config;
+    Config& config;
 
     /**
      * The current level of light.

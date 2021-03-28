@@ -23,7 +23,7 @@ Config config;
 
 MqttHandler mqttHandler(config);
 
-Door door;
+Door door(config);
 
 void LOG(const char* message) {
     Serial.println(message);
@@ -104,7 +104,7 @@ void setup() {
     wifiClient->setCACert(root_cert.c_str());
     mqttHandler.begin(wifiClient, iotConfigJson);
 
-    door.begin(&config);
+    door.begin();
 }
 
 void loop() {
