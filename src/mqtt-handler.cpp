@@ -26,17 +26,16 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
         delay(10);
     }
 
-    String projectId = config["projectId"];
-    String location = config["location"];
-    String registryId = config["registryId"];
-    String deviceId = config["deviceId"];
-    String privateKey = config["privateKey"];
+    projectId = config["projectId"];
+    location = config["location"];
+    registryId = config["registryId"];
+    deviceId = config["deviceId"];
+    privateKey = config["privateKey"];
 
     Serial.printf("Using Google Cloud via MQTT on project '%s' in '%s', registry '%s' as device '%s'\n",
-        projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str());
+        projectId, location, registryId, deviceId);
 
-    device = new CloudIoTCoreDevice(
-        projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
+    device = new CloudIoTCoreDevice(projectId, location, registryId, deviceId, privateKey);
 
     mqttClient = new MQTTClient(360);
     mqttClient->setOptions(
@@ -51,13 +50,13 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
 
     // Subscribe to errors
     // TODO Is this a Google Cloud feature?
-    mqttClient->subscribe("/devices/" + deviceId + "/errors", 0);
+    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/errors", 0);
 
     // Subscribe to delegate configuration
-    mqttClient->subscribe("/devices/" + deviceId + "/config", 1);
+    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/config", 1);
 
     // Subscribe to delegate commands
-    mqttClient->subscribe("/devices/" + deviceId + "/commands/#", 0);
+    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/commands/#", 0);
 
     mqtt->mqttConnect();
 

@@ -23,6 +23,12 @@ private:
     void messageReceived(String& topic, String& payload);
     friend void messageReceived(String& topic, String& payload);
 
+    const char* projectId;
+    const char* location;
+    const char* registryId;
+    const char* deviceId;
+    const char* privateKey;
+
     CloudIoTCoreMqtt* mqtt;
     MQTTClient* mqttClient;
     CloudIoTCoreDevice* device;
