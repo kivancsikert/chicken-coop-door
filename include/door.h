@@ -42,7 +42,14 @@ enum class GateState {
     CLOSING
 };
 
-struct State {
+class Door {
+public:
+    void begin(Config* config);
+    void loop();
+
+private:
+    Config* config;
+
     /**
      * The current level of light.
      */
@@ -62,16 +69,7 @@ struct State {
      * Whether the "gate closed" switch is engaged or not.
      */
     bool closedSwitch = false;
-};
 
-class Door {
-public:
-    void begin(Config* config);
-    void loop();
-
-private:
-    Config* config;
-    State state;
     unsigned long previousMillis = 0;
     unsigned long interval = 1000;
 
