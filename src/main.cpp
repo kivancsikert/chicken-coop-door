@@ -3,15 +3,11 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
-#include <AsyncTCP.h>
 #include <SPIFFS.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
 #define SPIFFS LittleFS
 #include <LittleFS.h>
 #endif
-#include <ESPAsyncWebServer.h>
 
 #include "ota.h"
 #include <Arduino.h>
@@ -111,76 +107,8 @@ struct State {
     bool closedSwitch = false;
 } state;
 
-AsyncWebServer server(80);
-AsyncWebSocket webSocket("/log");
-
-void onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type,
-    void* arg, uint8_t* data, size_t length) {
-    switch (type) {
-        case WS_EVT_CONNECT:
-            Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-            break;
-        case WS_EVT_DISCONNECT:
-            Serial.printf("WebSocket client #%u disconnected\n", client->id());
-            break;
-        case WS_EVT_DATA: {
-            AwsFrameInfo* info = (AwsFrameInfo*) arg;
-            if (info->final && (info->index == 0) && (info->len == length)) {
-                if (info->opcode == WS_TEXT) {
-                    DynamicJsonDocument request(length + 1);
-                    deserializeJson(request, (char*) data);
-                    if (request.containsKey("command")) {
-                        String command = request["command"];
-                        if (command == "update") {
-                            if (request.containsKey("gateState")) {
-                                state.gateState = static_cast<GateState>((int) request["gateState"]);
-                            }
-                            if (request.containsKey("motorPosition")) {
-                                motor.moveTo(request["motorPosition"]);
-                            }
-                        } else if (command == "set-wifi") {
-                            File wifiConfig = SPIFFS.open("/wifi.txt", FILE_WRITE);
-                            String ssid = request["ssid"];
-                            String password = request["password"];
-                            wifiConfig.print(ssid);
-                            wifiConfig.print("\n");
-                            wifiConfig.print(password);
-                            wifiConfig.print("\n");
-                            wifiConfig.close();
-                        } else if (command == "remove-wifi") {
-                            SPIFFS.remove("/wifi.txt");
-                        } else if (command == "status") {
-                            const int capacity = JSON_OBJECT_SIZE(10);
-                            StaticJsonDocument<capacity> message;
-                            message["type"] = "status";
-                            message["version"] = "1.2.7";
-                            message["light"] = state.currentLight;
-                            message["openLightLimit"] = config.openLightLimit;
-                            message["closeLightLimit"] = config.closeLightLimit;
-                            message["motorPosition"] = motor.currentPosition();
-                            message["openSwitch"] = state.openSwitch;
-                            message["closedSwitch"] = state.closedSwitch;
-                            message["gateState"] = static_cast<int>(state.gateState);
-                            char buffer[1024];
-                            serializeJson(message, buffer);
-                            client->text(buffer);
-                        }
-                    }
-                } else {
-                    Serial.println("Received a ws message, but it isn't text");
-                }
-            } else {
-                Serial.println("Received a ws message, but it didn't fit into one frame");
-            }
-        } break;
-        case WS_EVT_PONG:
-        case WS_EVT_ERROR:
-            break;
-    }
-}
-
 void LOG(const char* message) {
-    webSocket.printfAll("{\"type\": \"log\", \"message\": \"%s\"}", message);
+    Serial.println(message);
 }
 
 void setup() {
@@ -262,15 +190,6 @@ void setup() {
     Serial.print(", hostname: ");
     Serial.println(WiFi.softAPgetHostname());
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-        Serial.println("Request for main page...");
-        request->send(SPIFFS, "/index.html", "text/html");
-    });
-
-    webSocket.onEvent(onWebSocketEvent);
-    server.addHandler(&webSocket);
-
-    server.begin();
     ota.begin("chickens");
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
@@ -291,7 +210,6 @@ unsigned int stepsAtOnce = 100;
 
 void loop() {
     ota.handle();
-    webSocket.cleanupClients();
     mqttHandler.loop();
 
     state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
