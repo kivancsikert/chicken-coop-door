@@ -13,8 +13,6 @@ String getJwt() {
 }
 
 // The MQTT callback function for commands and configuration updates
-// This is were incoming command from the gateway gets saved,
-// to forward to the delegate device
 void messageReceived(String& topic, String& payload) {
     instance->messageReceived(topic, payload);
 }
