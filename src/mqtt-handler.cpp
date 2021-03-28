@@ -32,11 +32,8 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
     deviceId = config["deviceId"].as<String>();
     privateKey = config["privateKey"].as<String>();
 
-    Serial.printf("Using Google Cloud via MQTT on project '%s' in '%s', registry '%s' as device '%s'\n",
-        projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str());
-
-    device = new CloudIoTCoreDevice(
-        projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
+    Serial.println("Connecting device '" + deviceId + "' to Google Cloud via MQTT on project '" + projectId + "' in '" + location + "' in registry '" + registryId + "'\n");
+    device = new CloudIoTCoreDevice(projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
 
     mqttClient = new MQTTClient(360);
     mqttClient->setOptions(
