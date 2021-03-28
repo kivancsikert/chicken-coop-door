@@ -1,5 +1,9 @@
 # Chicken Coop Door
 
+## Dashboard
+
+See [Galagonya Kert dashboards on Google Data Studio](https://datastudio.google.com/u/0/explorer/2f1ac65f-5839-4393-8eb5-25d90e34bad6).
+
 ## Building
 
 * Place `data/iot-config.json` with the following contents used to access Google Cloud IoT Core:
