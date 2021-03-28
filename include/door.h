@@ -49,6 +49,8 @@ public:
     void begin();
     void loop();
 
+    void executeCommand(const JsonDocument& json);
+
 private:
     Config& config;
     MqttHandler& mqttHandler;

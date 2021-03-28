@@ -81,6 +81,13 @@ void Door::updateMotor() {
     }
 }
 
+void Door::executeCommand(const JsonDocument& json) {
+    if (json.containsKey("moveTo")) {
+        long targetPosition = json["moveTo"];
+        motor.moveTo(targetPosition);
+    }
+}
+
 void Door::publishState(unsigned long currentMillis) {
     if (currentMillis > previousStatePublishMillis + config.statePublishingInterval) {
         previousStatePublishMillis = currentMillis;

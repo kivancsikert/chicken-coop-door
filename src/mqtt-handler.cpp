@@ -3,8 +3,7 @@
 
 MqttHandler* instance;
 
-MqttHandler::MqttHandler(Config& config)
-    : config(config) {
+MqttHandler::MqttHandler() {
     instance = this;
 }
 
@@ -17,7 +16,13 @@ void messageReceived(String& topic, String& payload) {
     instance->messageReceived(topic, payload);
 }
 
-void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
+void MqttHandler::begin(Client* netClient,
+    const JsonDocument& config,
+    std::function<void(JsonDocument&)> onConfigChange,
+    std::function<void(JsonDocument&)> onCommand) {
+    this->onConfigChange = onConfigChange;
+    this->onCommand = onCommand;
+
     configTime(0, 0, "pool.ntp.org");
     while (true) {
         time_t currentTime = time(nullptr);
@@ -77,13 +82,12 @@ String MqttHandler::getJwt() {
 
 void MqttHandler::messageReceived(String& topic, String& payload) {
     Serial.println("Received '" + topic + "': " + payload);
+        DynamicJsonDocument json(payload.length() * 2);
+        deserializeJson(json, payload);
     if (topic.endsWith("/config")) {
-        DynamicJsonDocument configJson(payload.length() * 2);
-        deserializeJson(configJson, payload);
-        config.update(configJson);
-        Serial.println("Received configuration");
-        config.store();
-        Serial.println("Stored configuration");
+        onConfigChange(json);
+    } else if (topic.endsWith("/commands")) {
+        onCommand(json);
     }
 }
 

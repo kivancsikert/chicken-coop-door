@@ -9,19 +9,19 @@
 #include <LittleFS.h>
 #endif
 
-#include "ota.h"
 #include <Arduino.h>
 
 #include <ArduinoJson.h>
 
 #include "door.h"
 #include "mqtt-handler.h"
+#include "ota.h"
 
 Ota ota;
 
 Config config;
 
-MqttHandler mqttHandler(config);
+MqttHandler mqttHandler;
 
 Door door(config, mqttHandler);
 
@@ -102,7 +102,18 @@ void setup() {
     }
     WiFiClientSecure* wifiClient = new WiFiClientSecure();
     wifiClient->setCACert(root_cert.c_str());
-    mqttHandler.begin(wifiClient, iotConfigJson);
+    mqttHandler.begin(
+        wifiClient,
+        iotConfigJson,
+        [](const JsonDocument& json) {
+            config.update(json);
+            Serial.println("Received configuration");
+            config.store();
+            Serial.println("Stored configuration");
+        },
+        [](const JsonDocument& json) {
+            door.executeCommand(json);
+        });
 
     door.begin();
 }
