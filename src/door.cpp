@@ -13,13 +13,13 @@ void Door::begin() {
     motor.setMaxSpeed(500);
     motor.setSpeed(500);
     motor.setAcceleration(500);
+    Serial.println("Motor configured");
 
     Wire.begin(LIGHT_SDA, LIGHT_SCL);
-    Serial.println("Connecting to light sensor...");
     if (lightMeter.begin()) {
-        Serial.println("BH1750 initialised");
+        Serial.println("Light sensor initialised");
     } else {
-        Serial.println("Error initialising BH1750");
+        Serial.println("Error initialising light sensor");
     }
 }
 
