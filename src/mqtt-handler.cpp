@@ -63,8 +63,7 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
     Serial.printf("State topic: %s\n", device->getStateTopic().c_str());
     Serial.printf("Events topic: %s\n", device->getEventsTopic().c_str());
     mqtt->publishState("UP AND RUNNING");
-    mqtt->publishTelemetry("Connected");
-    // Serial.printf("Publishing: %d\n", mqttClient->publish("chicken-coop-door", "HELLO"));
+    mqtt->publishTelemetry("{ 'light': 123 }");
     mqtt->loop();
 }
 
