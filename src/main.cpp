@@ -23,7 +23,7 @@ Config config;
 
 MqttHandler mqttHandler(config);
 
-Door door(config);
+Door door(config, mqttHandler);
 
 void LOG(const char* message) {
     Serial.println(message);

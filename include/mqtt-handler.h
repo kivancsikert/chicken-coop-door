@@ -18,6 +18,8 @@ public:
     void begin(Client* netClient, const JsonDocument& config);
     void loop();
 
+    void publishState(const JsonDocument& json);
+
 private:
     String getJwt();
     friend String getJwt();

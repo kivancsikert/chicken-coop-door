@@ -6,6 +6,7 @@
 #include <Wire.h>
 
 #include "config.h"
+#include "mqtt-handler.h"
 
 #ifdef ESP32
 
@@ -44,12 +45,13 @@ enum class GateState {
 
 class Door {
 public:
-    Door(Config& config);
+    Door(Config& config, MqttHandler& mqttHandler);
     void begin();
     void loop();
 
 private:
     Config& config;
+    MqttHandler& mqttHandler;
 
     /**
      * The current level of light.
@@ -71,5 +73,10 @@ private:
      */
     bool closedSwitch = false;
 
+    void updateLight(unsigned long currentMillis);
+    void updateMotor();
+    void publishState(unsigned long currentMillis);
+
     unsigned long previousLightUpdateMillis = 0;
+    unsigned long previousStatePublishMillis = 0;
 };

@@ -64,8 +64,6 @@ void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
 
     Serial.printf("State topic: %s\n", device->getStateTopic().c_str());
     Serial.printf("Events topic: %s\n", device->getEventsTopic().c_str());
-    mqtt->publishState("UP AND RUNNING");
-    mqtt->publishTelemetry("{ 'light': 123 }");
     mqtt->loop();
 }
 
@@ -96,6 +94,12 @@ void MqttHandler::loop() {
         Serial.println("Reconnecting...");
         mqtt->mqttConnect();
     }
+}
+
+void MqttHandler::publishState(const JsonDocument& json) {
+    String payload;
+    serializeJson(json, payload);
+    mqtt->publishState(payload);
 }
 
 // To get the certificate for your region run:

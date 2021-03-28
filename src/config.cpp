@@ -31,6 +31,8 @@ void Config::update(const JsonDocument& json) {
 
     wifiSsid = getJsonValue(json, "wifiSsid", "");
     wifiPassword = getJsonValue(json, "wifiPassword", "");
+
+    statePublishingInterval = getJsonValue(json, "statePublishingInterval", 5 * 1000);
 }
 
 void Config::store() {
@@ -43,6 +45,8 @@ void Config::store() {
 
     json["wifiSsid"] = wifiSsid;
     json["wifiPassword"] = wifiPassword;
+
+    json["statePublishingInterval"] = statePublishingInterval;
 
     File configFile = SPIFFS.open("/config.json", FILE_WRITE);
     serializeJson(json, configFile);

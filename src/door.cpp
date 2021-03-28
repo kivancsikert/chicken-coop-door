@@ -6,8 +6,9 @@ AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, 
 
 BH1750 lightMeter;
 
-Door::Door(Config& config)
-    : config(config) {
+Door::Door(Config& config, MqttHandler& mqttHandler)
+    : config(config)
+    , mqttHandler(mqttHandler) {
 }
 
 void Door::begin() {
@@ -28,12 +29,16 @@ void Door::begin() {
 }
 
 void Door::loop() {
-    openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
-    closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
-
     unsigned long currentMillis = millis();
-    if (currentMillis - previousLightUpdateMillis > config.lightUpdateInterval) {
+    updateLight(currentMillis);
+    updateMotor();
+    publishState(currentMillis);
+}
+
+void Door::updateLight(unsigned long currentMillis) {
+    if (currentMillis > previousLightUpdateMillis + config.lightUpdateInterval) {
         previousLightUpdateMillis = currentMillis;
+
         currentLight = lightMeter.readLightLevel();
         if (currentLight < config.closeLightLimit && gateState == GateState::OPEN) {
             Serial.println("Closing...");
@@ -43,6 +48,11 @@ void Door::loop() {
             gateState = GateState::OPENING;
         }
     }
+}
+
+void Door::updateMotor() {
+    openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
+    closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
     if (!motor.run()) {
         if (gateState == GateState::OPEN || gateState == GateState::CLOSED) {
@@ -68,5 +78,20 @@ void Door::loop() {
         } else {
             motor.move(-STEPS_AT_ONCE);
         }
+    }
+}
+
+void Door::publishState(unsigned long currentMillis) {
+    if (currentMillis > previousStatePublishMillis + config.statePublishingInterval) {
+        previousStatePublishMillis = currentMillis;
+
+        DynamicJsonDocument json(2048);
+        json["light"] = currentLight;
+        json["gate"] = static_cast<int>(gateState);
+        json["openSwitch"] = openSwitch;
+        json["closedSwitch"] = closedSwitch;
+        json["motorPosition"] = motor.currentPosition();
+        mqttHandler.publishState(json);
+        Serial.println("Published state");
     }
 }

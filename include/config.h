@@ -19,9 +19,9 @@ public:
     float closeLightLimit;
 
     /**
-     * Light sensor update interval.
+     * Light sensor update interval in milliseconds.
      */
-    unsigned int lightUpdateInterval;
+    unsigned long lightUpdateInterval;
 
     /**
      * Whether to invert the "gate open" switch or not.
@@ -42,4 +42,9 @@ public:
      * WIFI SSID to connect to.
      */
     String wifiPassword;
+
+    /**
+     * Number of milliseconds between publishing state.
+     */
+    unsigned long statePublishingInterval;
 };
