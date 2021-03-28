@@ -84,6 +84,7 @@ void Door::updateMotor() {
 void Door::executeCommand(const JsonDocument& json) {
     if (json.containsKey("moveTo")) {
         long targetPosition = json["moveTo"];
+        Serial.println("Moving door to " + String(targetPosition));
         motor.moveTo(targetPosition);
     }
 }
