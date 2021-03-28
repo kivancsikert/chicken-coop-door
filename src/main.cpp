@@ -1,6 +1,7 @@
 #ifdef ESP32
 #include "pins_arduino_ttgo_call.h"
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 
 #include <AsyncTCP.h>
 #include <SPIFFS.h>
@@ -12,14 +13,16 @@
 #endif
 #include <ESPAsyncWebServer.h>
 
-#include <Arduino.h>
 #include "ota.h"
+#include <Arduino.h>
 
 #include <AccelStepper.h>
 #include <BH1750.h>
 #include <Wire.h>
 
 #include <ArduinoJson.h>
+
+#include "mqtt-handler.h"
 
 #ifdef ESP32
 
@@ -241,7 +244,10 @@ void setup() {
         WiFi.begin(ssid.c_str(), password.c_str());
     } else {
         Serial.print("Couldn't find WIFI config, using SmartConfig...");
-        WiFi.beginSmartConfig();
+        bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
+        if (!smartConfigBeginSuccess) {
+            Serial.println(" unsuccessful");
+        }
     }
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
@@ -268,6 +274,16 @@ void setup() {
 
     server.begin();
     ota.begin("chickens");
+
+    File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
+    DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
+    DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
+    if (error) {
+        Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
+    }
+    WiFiClientSecure* wifiClient = new WiFiClientSecure();
+    wifiClient->setCACert(root_cert.c_str());
+    mqttHandler.begin(wifiClient, iotConfigJson);
 }
 
 unsigned long previousMillis = 0;
@@ -278,6 +294,7 @@ unsigned int stepsAtOnce = 100;
 void loop() {
     ota.handle();
     webSocket.cleanupClients();
+    mqttHandler.loop();
 
     state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
