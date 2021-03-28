@@ -1,18 +1,22 @@
 #include "mqtt-handler.h"
 #include <SPIFFS.h>
 
-MqttHandler::MqttHandler() {
+MqttHandler* instance;
+
+MqttHandler::MqttHandler(Config& config)
+    : config(config) {
+    instance = this;
 }
 
 String getJwt() {
-    return mqttHandler.getJwt();
+    return instance->getJwt();
 }
 
 // The MQTT callback function for commands and configuration updates
 // This is were incoming command from the gateway gets saved,
 // to forward to the delegate device
 void messageReceived(String& topic, String& payload) {
-    mqttHandler.messageReceived(topic, payload);
+    instance->messageReceived(topic, payload);
 }
 
 void MqttHandler::begin(Client* netClient, const JsonDocument& config) {
@@ -77,6 +81,14 @@ String MqttHandler::getJwt() {
 
 void MqttHandler::messageReceived(String& topic, String& payload) {
     Serial.println("Received '" + topic + "': " + payload);
+    if (topic.endsWith("/config")) {
+        DynamicJsonDocument configJson(payload.length() * 2);
+        deserializeJson(configJson, payload);
+        config.update(configJson);
+        Serial.println("Received configuration");
+        config.store();
+        Serial.println("Stored configuration");
+    }
 }
 
 void MqttHandler::loop() {
@@ -87,8 +99,6 @@ void MqttHandler::loop() {
         mqtt->mqttConnect();
     }
 }
-
-MqttHandler mqttHandler;
 
 // To get the certificate for your region run:
 //   openssl s_client -showcerts -connect mqtt.googleapis.com:8883

@@ -21,6 +21,8 @@ Ota ota;
 
 Config config;
 
+MqttHandler mqttHandler(config);
+
 Door door;
 
 void LOG(const char* message) {
@@ -59,13 +61,7 @@ void setup() {
     LittleFS.begin();
 #endif
 
-    if (SPIFFS.exists("/config.json")) {
-        File configFile = SPIFFS.open("/config.json", FILE_READ);
-        DynamicJsonDocument configJson(configFile.size() * 2);
-        deserializeJson(configJson, configFile);
-        configFile.close();
-        config.load(configJson);
-    }
+    config.begin();
 
     WiFi.mode(WIFI_AP_STA);
     delay(500);

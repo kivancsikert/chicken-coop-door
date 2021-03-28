@@ -4,8 +4,9 @@
 
 class Config {
 public:
-    void load(const JsonDocument& json);
-    void store(JsonDocument& json);
+    void begin();
+    void update(const JsonDocument& json);
+    void store();
 
     /**
      * Light required to be above limit to open the door.
