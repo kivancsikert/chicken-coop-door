@@ -2,10 +2,10 @@
 
 #include <ArduinoJson.h>
 #include <Client.h>
-#include <MQTT.h>
-
 #include <CloudIoTCore.h>
 #include <CloudIoTCoreMqtt.h>
+#include <MQTT.h>
+#include <functional>
 
 extern const String root_cert;
 
@@ -13,8 +13,14 @@ class MqttHandler {
 public:
     MqttHandler();
 
-    void begin(Client* netClient, const JsonDocument& config);
+    void begin(
+        Client* netClient,
+        const JsonDocument& config,
+        std::function<void(JsonDocument&)> onConfigChange,
+        std::function<void(JsonDocument&)> onCommand);
     void loop();
+
+    void publishTelemetry(const JsonDocument& json);
 
 private:
     String getJwt();
@@ -33,9 +39,10 @@ private:
     MQTTClient* mqttClient;
     CloudIoTCoreDevice* device;
 
+    std::function<void(JsonDocument&)> onConfigChange;
+    std::function<void(JsonDocument&)> onCommand;
+
     // Time (seconds) to expire token += 20 minutes for drift
     // Maximum 24H (3600*24)
     const int jwtExpirationInSeconds = 60 * 20;
 };
-
-extern MqttHandler mqttHandler;
