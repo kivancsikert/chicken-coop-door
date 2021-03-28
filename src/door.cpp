@@ -32,7 +32,7 @@ void Door::loop() {
     unsigned long currentMillis = millis();
     updateLight(currentMillis);
     updateMotor();
-    publishState(currentMillis);
+    publishTelemetry(currentMillis);
 }
 
 void Door::updateLight(unsigned long currentMillis) {
@@ -89,7 +89,7 @@ void Door::executeCommand(const JsonDocument& json) {
     }
 }
 
-void Door::publishState(unsigned long currentMillis) {
+void Door::publishTelemetry(unsigned long currentMillis) {
     if (currentMillis > previousStatePublishMillis + config.statePublishingInterval) {
         previousStatePublishMillis = currentMillis;
 
@@ -99,7 +99,7 @@ void Door::publishState(unsigned long currentMillis) {
         json["openSwitch"] = openSwitch;
         json["closedSwitch"] = closedSwitch;
         json["motorPosition"] = motor.currentPosition();
-        mqttHandler.publishState(json);
+        mqttHandler.publishTelemetry(json);
         Serial.println("Published state");
     }
 }

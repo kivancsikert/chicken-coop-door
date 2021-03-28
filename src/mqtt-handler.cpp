@@ -100,10 +100,10 @@ void MqttHandler::loop() {
     }
 }
 
-void MqttHandler::publishState(const JsonDocument& json) {
+void MqttHandler::publishTelemetry(const JsonDocument& json) {
     String payload;
     serializeJson(json, payload);
-    mqtt->publishState(payload);
+    mqtt->publishTelemetry(payload);
 }
 
 // To get the certificate for your region run:

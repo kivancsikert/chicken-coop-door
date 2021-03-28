@@ -77,7 +77,7 @@ private:
 
     void updateLight(unsigned long currentMillis);
     void updateMotor();
-    void publishState(unsigned long currentMillis);
+    void publishTelemetry(unsigned long currentMillis);
 
     unsigned long previousLightUpdateMillis = 0;
     unsigned long previousStatePublishMillis = 0;
