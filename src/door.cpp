@@ -6,7 +6,9 @@ AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, 
 
 BH1750 lightMeter;
 
-void Door::begin() {
+void Door::begin(Config* config) {
+    this->config = config;
+
     pinMode(OPEN_PIN, INPUT_PULLUP);
     pinMode(CLOSED_PIN, INPUT_PULLUP);
 
@@ -24,17 +26,17 @@ void Door::begin() {
 }
 
 void Door::loop() {
-    state.openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
-    state.closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
+    state.openSwitch = digitalRead(OPEN_PIN) ^ config->invertOpenSwitch;
+    state.closedSwitch = digitalRead(CLOSED_PIN) ^ config->invertCloseSwitch;
 
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis > interval) {
         previousMillis = currentMillis;
         state.currentLight = lightMeter.readLightLevel();
-        if (state.currentLight < config.closeLightLimit && state.gateState == GateState::OPEN) {
+        if (state.currentLight < config->closeLightLimit && state.gateState == GateState::OPEN) {
             Serial.println("Closing...");
             state.gateState = GateState::CLOSING;
-        } else if (state.currentLight > config.openLightLimit && state.gateState == GateState::CLOSED) {
+        } else if (state.currentLight > config->openLightLimit && state.gateState == GateState::CLOSED) {
             Serial.println("Opening...");
             state.gateState = GateState::OPENING;
         }

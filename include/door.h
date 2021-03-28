@@ -5,6 +5,8 @@
 #include <BH1750.h>
 #include <Wire.h>
 
+#include "config.h"
+
 #ifdef ESP32
 
 #define MOTOR_PIN1 GPIO_NUM_32
@@ -32,28 +34,6 @@
 #define LIGHT_SDC D4
 
 #endif
-
-struct Config {
-    /**
-     * Light required to be above limit to open the door.
-     */
-    float openLightLimit = 120;
-
-    /**
-     * Light required to be below limit to open the door.
-     */
-    float closeLightLimit = 50;
-
-    /**
-     * Whether to invert the "gate open" switch or not.
-     */
-    bool invertOpenSwitch = true;
-
-    /**
-     * Whether to invert the "gate close" switch or not.
-     */
-    bool invertCloseSwitch = true;
-};
 
 enum class GateState {
     OPEN,
@@ -86,11 +66,11 @@ struct State {
 
 class Door {
 public:
-    void begin();
+    void begin(Config* config);
     void loop();
 
 private:
-    Config config;
+    Config* config;
     State state;
     unsigned long previousMillis = 0;
     unsigned long interval = 1000;

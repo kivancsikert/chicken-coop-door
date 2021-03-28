@@ -19,6 +19,8 @@
 
 Ota ota;
 
+Config config;
+
 Door door;
 
 void LOG(const char* message) {
@@ -57,22 +59,26 @@ void setup() {
     LittleFS.begin();
 #endif
 
+    if (SPIFFS.exists("/config.json")) {
+        File configFile = SPIFFS.open("/config.json", FILE_READ);
+        DynamicJsonDocument configJson(configFile.size() * 2);
+        deserializeJson(configJson, configFile);
+        configFile.close();
+        config.load(configJson);
+    }
+
     WiFi.mode(WIFI_AP_STA);
     delay(500);
-    if (SPIFFS.exists("/wifi.txt")) {
-        File wifiConfig = SPIFFS.open("/wifi.txt", FILE_READ);
-        String ssid = wifiConfig.readStringUntil('\n');
-        String password = wifiConfig.readStringUntil('\n');
-        wifiConfig.close();
+    if (!config.wifiSsid.isEmpty()) {
         Serial.print("Using stored WIFI configuration to connect to ");
-        Serial.print(ssid);
+        Serial.print(config.wifiSsid);
         Serial.print("...");
-        WiFi.begin(ssid.c_str(), password.c_str());
+        WiFi.begin(config.wifiSsid.c_str(), config.wifiPassword.c_str());
     } else {
-        Serial.print("Couldn't find WIFI config, using SmartConfig...");
+        Serial.print("WIFI is not configured, using SmartConfig...");
         bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
         if (!smartConfigBeginSuccess) {
-            Serial.println(" unsuccessful");
+            Serial.print(" unsuccessful");
         }
     }
     while (WiFi.status() != WL_CONNECTED) {
@@ -102,7 +108,7 @@ void setup() {
     wifiClient->setCACert(root_cert.c_str());
     mqttHandler.begin(wifiClient, iotConfigJson);
 
-    door.begin();
+    door.begin(&config);
 }
 
 void loop() {
