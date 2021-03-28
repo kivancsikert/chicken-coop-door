@@ -1,0 +1,8 @@
+{
+  "name": "galagonya-publish",
+  "version": "0.0.1",
+  "dependencies": {
+    "@google-cloud/bigquery": "^5.5.0",
+    "@google-cloud/pubsub": "^2.10.0"
+  }
+}
