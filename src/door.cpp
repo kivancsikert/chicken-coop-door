@@ -1,5 +1,7 @@
 #include "door.h"
 
+#define STEPS_AT_ONCE 100
+
 AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4);
 
 BH1750 lightMeter;
@@ -30,8 +32,8 @@ void Door::loop() {
     closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
     unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis > interval) {
-        previousMillis = currentMillis;
+    if (currentMillis - previousLightUpdateMillis > config.lightUpdateInterval) {
+        previousLightUpdateMillis = currentMillis;
         currentLight = lightMeter.readLightLevel();
         if (currentLight < config.closeLightLimit && gateState == GateState::OPEN) {
             Serial.println("Closing...");
@@ -56,7 +58,7 @@ void Door::loop() {
             motor.stop();
             gateState = GateState::CLOSED;
         } else {
-            motor.move(stepsAtOnce);
+            motor.move(STEPS_AT_ONCE);
         }
     } else if (gateState == GateState::OPENING) {
         if (openSwitch) {
@@ -64,7 +66,7 @@ void Door::loop() {
             motor.stop();
             gateState = GateState::OPEN;
         } else {
-            motor.move(-stepsAtOnce);
+            motor.move(-STEPS_AT_ONCE);
         }
     }
 }

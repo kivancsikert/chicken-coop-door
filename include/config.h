@@ -19,6 +19,11 @@ public:
     float closeLightLimit;
 
     /**
+     * Light sensor update interval.
+     */
+    unsigned int lightUpdateInterval;
+
+    /**
      * Whether to invert the "gate open" switch or not.
      */
     bool invertOpenSwitch;

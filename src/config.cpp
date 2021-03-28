@@ -25,6 +25,7 @@ void Config::begin() {
 void Config::update(const JsonDocument& json) {
     openLightLimit = getJsonValue(json, "openLightLimit", std::numeric_limits<float>::min());
     closeLightLimit = getJsonValue(json, "openLightLimit", std::numeric_limits<float>::max());
+    lightUpdateInterval = getJsonValue(json, "lightUpdateInterval", 1000);
     invertOpenSwitch = getJsonValue(json, "invertOpenSwitch", false);
     invertCloseSwitch = getJsonValue(json, "invertCloseSwitch", false);
 
@@ -36,6 +37,7 @@ void Config::store() {
     DynamicJsonDocument json(2048);
     json["openLightLimit"] = openLightLimit;
     json["closeLightLimit"] = closeLightLimit;
+    json["lightUpdateInterval"] = lightUpdateInterval;
     json["invertOpenSwitch"] = invertOpenSwitch;
     json["invertCloseSwitch"] = invertCloseSwitch;
 

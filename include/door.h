@@ -71,8 +71,5 @@ private:
      */
     bool closedSwitch = false;
 
-    unsigned long previousMillis = 0;
-    unsigned long interval = 1000;
-
-    unsigned int stepsAtOnce = 100;
+    unsigned long previousLightUpdateMillis = 0;
 };
