@@ -11,30 +11,30 @@ public:
     /**
      * Light required to be above limit to open the door.
      */
-    float openLightLimit = 120;
+    float openLightLimit;
 
     /**
      * Light required to be below limit to open the door.
      */
-    float closeLightLimit = 50;
+    float closeLightLimit;
 
     /**
      * Whether to invert the "gate open" switch or not.
      */
-    bool invertOpenSwitch = true;
+    bool invertOpenSwitch;
 
     /**
      * Whether to invert the "gate close" switch or not.
      */
-    bool invertCloseSwitch = true;
+    bool invertCloseSwitch;
 
     /**
      * WIFI SSID to connect to.
      */
-    String wifiSsid = "";
+    String wifiSsid;
 
     /**
      * WIFI SSID to connect to.
      */
-    String wifiPassword = "";
+    String wifiPassword;
 };
