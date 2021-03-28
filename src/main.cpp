@@ -242,7 +242,6 @@ void setup() {
         Serial.print(ssid);
         Serial.print("...");
         wl_status_t wifiBeginStatus = WiFi.begin(ssid.c_str(), password.c_str());
-        Serial.print(wifiBeginStatus);
     } else {
         Serial.print("Couldn't find WIFI config, using SmartConfig...");
         bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
