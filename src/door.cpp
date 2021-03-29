@@ -36,7 +36,7 @@ void Door::loop() {
 }
 
 void Door::updateLight(unsigned long currentMillis) {
-    if (currentMillis > previousLightUpdateMillis + config.lightUpdateInterval) {
+    if (currentMillis - previousLightUpdateMillis > config.lightUpdateInterval) {
         previousLightUpdateMillis = currentMillis;
 
         currentLight = lightMeter.readLightLevel();
@@ -90,7 +90,7 @@ void Door::executeCommand(const JsonDocument& json) {
 }
 
 void Door::publishTelemetry(unsigned long currentMillis) {
-    if (currentMillis > previousStatePublishMillis + config.statePublishingInterval) {
+    if (currentMillis - previousStatePublishMillis > config.statePublishingInterval) {
         previousStatePublishMillis = currentMillis;
 
         DynamicJsonDocument json(2048);
