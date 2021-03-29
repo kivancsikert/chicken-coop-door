@@ -44,9 +44,9 @@ public:
     String wifiPassword;
 
     /**
-     * GSM PIN code.
+     * SIM PIN code.
      */
-    String gsmPin;
+    String simPin;
 
     /**
      * GPRS APN.
