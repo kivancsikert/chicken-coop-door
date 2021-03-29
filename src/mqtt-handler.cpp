@@ -42,7 +42,7 @@ void MqttHandler::begin(Client* netClient,
     Serial.println("Connecting device '" + deviceId + "' to Google Cloud via MQTT on project '" + projectId + "' in '" + location + "' in registry '" + registryId + "'\n");
     device = new CloudIoTCoreDevice(projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
 
-    mqttClient = new MQTTClient(360);
+    mqttClient = new MQTTClient(MQTT_BUFFER_SIZE);
     mqttClient->setOptions(
         180,     // keepAlive
         true,    // cleanSession
@@ -81,9 +81,9 @@ String MqttHandler::getJwt() {
 }
 
 void MqttHandler::messageReceived(String& topic, String& payload) {
-    Serial.println("Received '" + topic + "': " + payload);
-        DynamicJsonDocument json(payload.length() * 2);
-        deserializeJson(json, payload);
+    Serial.println("Received '" + topic + "' (size: " + payload.length() + "): " + payload);
+    DynamicJsonDocument json(payload.length() * 2);
+    deserializeJson(json, payload);
     if (topic.endsWith("/config")) {
         onConfigChange(json);
     } else if (topic.endsWith("/commands")) {

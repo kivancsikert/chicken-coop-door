@@ -37,7 +37,7 @@ void Config::update(const JsonDocument& json) {
     gprsUsername = getJsonValue(json, "gprsUsername", "");
     gprsPassword = getJsonValue(json, "gprsPassword", "");
 
-    statePublishingInterval = getJsonValue(json, "statePublishingInterval", 5 * 1000);
+    statePublishingInterval = getJsonValue(json, "statePublishingInterval", 60 * 1000);
 }
 
 void Config::store() {
