@@ -28,7 +28,7 @@ private:
     String getJwt();
     friend String getJwt();
 
-    void messageReceived(String& topic, String& payload);
+    void messageReceived(const String& topic, const String& payload);
     friend void messageReceived(String& topic, String& payload);
 
     String projectId;

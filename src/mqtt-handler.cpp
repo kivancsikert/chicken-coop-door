@@ -80,7 +80,7 @@ String MqttHandler::getJwt() {
     return jwt;
 }
 
-void MqttHandler::messageReceived(String& topic, String& payload) {
+void MqttHandler::messageReceived(const String& topic, const String& payload) {
     Serial.println("Received '" + topic + "' (size: " + payload.length() + "): " + payload);
     DynamicJsonDocument json(payload.length() * 2);
     deserializeJson(json, payload);
