@@ -32,6 +32,11 @@ void Config::update(const JsonDocument& json) {
     wifiSsid = getJsonValue(json, "wifiSsid", "");
     wifiPassword = getJsonValue(json, "wifiPassword", "");
 
+    gsmPin = getJsonValue(json, "gsmPin", "");
+    gprsApn = getJsonValue(json, "gprsApn", "");
+    gprsUsername = getJsonValue(json, "gprsUsername", "");
+    gprsPassword = getJsonValue(json, "gprsPassword", "");
+
     statePublishingInterval = getJsonValue(json, "statePublishingInterval", 5 * 1000);
 }
 
@@ -45,6 +50,11 @@ void Config::store() {
 
     json["wifiSsid"] = wifiSsid;
     json["wifiPassword"] = wifiPassword;
+
+    json["gsmPin"] = gsmPin;
+    json["gprsApn"] = gprsApn;
+    json["gprsUsername"] = gprsUsername;
+    json["gprsPassword"] = gprsPassword;
 
     json["statePublishingInterval"] = statePublishingInterval;
 

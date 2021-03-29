@@ -44,6 +44,26 @@ public:
     String wifiPassword;
 
     /**
+     * GSM PIN code.
+     */
+    String gsmPin;
+
+    /**
+     * GPRS APN.
+     */
+    String gprsApn;
+
+    /**
+     * GPRS username.
+     */
+    String gprsUsername;
+
+    /**
+     * GPRS password.
+     */
+    String gprsPassword;
+
+    /**
      * Number of milliseconds between publishing state.
      */
     unsigned long statePublishingInterval;
