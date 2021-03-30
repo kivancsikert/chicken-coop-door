@@ -66,10 +66,6 @@ void MqttHandler::begin(Client* netClient,
     mqttClient->subscribe("/devices/" + device->getDeviceId() + "/commands/#", 0);
 
     mqtt->mqttConnect();
-
-    Serial.printf("State topic: %s\n", device->getStateTopic().c_str());
-    Serial.printf("Events topic: %s\n", device->getEventsTopic().c_str());
-    mqtt->loop();
 }
 
 String MqttHandler::getJwt() {

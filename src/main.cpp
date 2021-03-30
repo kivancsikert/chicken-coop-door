@@ -102,9 +102,8 @@ void setup() {
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
-            Serial.println("Received configuration");
             config.store();
-            Serial.println("Stored configuration");
+            Serial.println("Updated local configuration");
         },
         [](const JsonDocument& json) {
             door.executeCommand(json);
