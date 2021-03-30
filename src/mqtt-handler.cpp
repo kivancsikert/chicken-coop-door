@@ -55,10 +55,6 @@ void MqttHandler::begin(Client* netClient,
 #endif
     mqtt->startMQTT();
 
-    // Subscribe to errors
-    // TODO Is this a Google Cloud feature?
-    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/errors", 0);
-
     // Subscribe to delegate configuration
     mqttClient->subscribe("/devices/" + device->getDeviceId() + "/config", 1);
 
