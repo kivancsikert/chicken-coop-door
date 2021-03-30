@@ -7,7 +7,7 @@
 #include <MQTT.h>
 #include <functional>
 
-extern const String root_cert;
+#define MQTT_BUFFER_SIZE 4096
 
 class MqttHandler {
 public:
@@ -26,7 +26,7 @@ private:
     String getJwt();
     friend String getJwt();
 
-    void messageReceived(String& topic, String& payload);
+    void messageReceived(const String& topic, const String& payload);
     friend void messageReceived(String& topic, String& payload);
 
     String projectId;
