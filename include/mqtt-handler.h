@@ -9,8 +9,6 @@
 
 #define MQTT_BUFFER_SIZE 4096
 
-extern const String root_cert;
-
 class MqttHandler {
 public:
     MqttHandler();
