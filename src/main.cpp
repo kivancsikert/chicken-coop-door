@@ -14,12 +14,15 @@
 #include <ArduinoJson.h>
 
 #include "door.h"
+#include "gsm.h"
 #include "mqtt-handler.h"
 #include "ota.h"
 
 Ota ota;
 
 Config config;
+
+Gsm gsm(config);
 
 MqttHandler mqttHandler;
 
@@ -93,6 +96,8 @@ void setup() {
     Serial.println(WiFi.softAPgetHostname());
 
     ota.begin("chickens");
+
+    gsm.begin();
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
