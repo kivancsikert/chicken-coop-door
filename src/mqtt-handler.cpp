@@ -104,4 +104,5 @@ void MqttHandler::publishTelemetry(const JsonDocument& json) {
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry(payload);
+    Serial.println("Published telemetry");
 }
