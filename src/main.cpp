@@ -25,10 +25,6 @@ MqttHandler mqttHandler;
 
 Door door(config, mqttHandler);
 
-void LOG(const char* message) {
-    Serial.println(message);
-}
-
 void setup() {
     Serial.begin(115200);
 
