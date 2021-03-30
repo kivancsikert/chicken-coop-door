@@ -13,6 +13,7 @@
 
 #include <ArduinoJson.h>
 
+#include "DebugClient.h"
 #include "door.h"
 #include "google-iot-root-cert.h"
 #include "gsm.h"
@@ -28,6 +29,8 @@ Gsm gsm(config);
 MqttHandler mqttHandler;
 
 Door door(config, mqttHandler);
+
+DebugClient debugClient;
 
 void setup() {
     Serial.begin(115200);
@@ -100,10 +103,9 @@ void setup() {
     if (error) {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
-    WiFiClientSecure* wifiClient = new WiFiClientSecure();
-    wifiClient->setCACert(googleIoTRootCert.c_str());
+    debugClient.delegateTo(&gsm.getClient());
     mqttHandler.begin(
-        &gsm.getClient(),
+        debugClient,
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);

@@ -1,8 +1,5 @@
 #include "gsm.h"
 #include "lilygo.h"
-#include "google-iot-root-cert.h"
-
-const String rootCertFile = "ca.pem";
 
 Gsm::Gsm(Config& config)
     : config(config)
@@ -12,7 +9,7 @@ Gsm::Gsm(Config& config)
 #else
     , modem(TinyGsm(SerialAT))
 #endif
-    , client(TinyGsmClientSecure(modem)) {
+    , client(TinyGsmClient(modem)) {
 }
 
 #define IP5306_ADDR 0x75
@@ -77,51 +74,6 @@ void Gsm::begin(const String& rootCert) {
     modem.sendAT("+CMEE=2");
     modem.waitResponse();
 #endif
-
-    // Installing root CA
-    modem.sendAT("+FSCREATE=", rootCertFile);
-    if (modem.waitResponse() != 1) {
-        // TODO Handle error
-        return;
-    }
-
-    const int cert_size = rootCert.length();
-
-    modem.sendAT("+FSWRITE=", rootCertFile, ",0,", cert_size, ",10");
-    if (modem.waitResponse(">") != 1) {
-        // TODO Handle error
-        return;
-    }
-
-    for (int i = 0; i < cert_size; i++) {
-        modem.stream.write(rootCert[i]);
-    }
-
-    modem.stream.write(GSM_NL);
-    modem.stream.flush();
-
-    if (modem.waitResponse(2000L) != 1) {
-        // TODO Handle error
-        return;
-    }
-
-    modem.sendAT("+SSLSETCERT=\"", rootCertFile, "\"");
-    if (modem.waitResponse() != 1) {
-        // TODO Handle error
-        return;
-    }
-    if (modem.waitResponse(5000L, GSM_NL "+SSLSETCERT:") != 1) {
-        // TODO Handle error
-        return;
-    }
-    const int retCode = modem.stream.readStringUntil('\n').toInt();
-
-    SerialMon.println();
-    SerialMon.println();
-    SerialMon.println(F("****************************"));
-    SerialMon.print(F("Setting Certificate: "));
-    SerialMon.println((0 == retCode) ? "OK" : "FAILED");
-    SerialMon.println(F("****************************"));
 
     // Unlock SIM card with a PIN if needed
     SimStatus simStatus = modem.getSimStatus();

@@ -10,7 +10,6 @@
 
 #define SerialMon Serial
 
-#define DUMP_AT_COMMANDS
 #ifdef DUMP_AT_COMMANDS
 #include <StreamDebugger.h>
 #endif
@@ -22,7 +21,7 @@ public:
     Gsm(Config& config);
     void begin(const String& rootCert);
 
-    TinyGsmClientSecure& getClient() {
+    TinyGsmClient& getClient() {
         return client;
     }
 
@@ -36,5 +35,5 @@ private:
     StreamDebugger debugger;
 #endif
     TinyGsm modem;
-    TinyGsmClientSecure client;
+    TinyGsmClient client;
 };
