@@ -75,7 +75,7 @@ void MqttHandler::begin(Client* netClient,
 String MqttHandler::getJwt() {
     time_t iss = time(nullptr);
     // Serial.println("Refreshing JWT");
-    String jwt = device->createJWT(iss, jwtExpirationInSeconds);
+    String jwt = device->createJWT(iss, JWT_EXPIRATION_IN_SECONDS);
     // Serial.println(jwt);
     return jwt;
 }
