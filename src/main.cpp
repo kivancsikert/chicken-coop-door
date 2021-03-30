@@ -92,7 +92,7 @@ void setup() {
 
     ota.begin("chickens");
 
-    gsm.begin();
+    gsm.begin(googleIoTRootCert);
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
@@ -103,7 +103,7 @@ void setup() {
     WiFiClientSecure* wifiClient = new WiFiClientSecure();
     wifiClient->setCACert(googleIoTRootCert.c_str());
     mqttHandler.begin(
-        wifiClient,
+        &gsm.getClient(),
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);

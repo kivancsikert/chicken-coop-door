@@ -1,5 +1,8 @@
 #include "gsm.h"
 #include "lilygo.h"
+#include "google-iot-root-cert.h"
+
+const String rootCertFile = "ca.pem";
 
 Gsm::Gsm(Config& config)
     : config(config)
@@ -9,7 +12,7 @@ Gsm::Gsm(Config& config)
 #else
     , modem(TinyGsm(SerialAT))
 #endif
-    , client(TinyGsmClient(modem)) {
+    , client(TinyGsmClientSecure(modem)) {
 }
 
 #define IP5306_ADDR 0x75
@@ -45,7 +48,7 @@ void Gsm::enableNetLight(bool enable) {
     modem.sendAT("+CNETLIGHT=" + String(enable ? "1" : "0"));
 }
 
-void Gsm::begin() {
+void Gsm::begin(const String& rootCert) {
     if (config.gprsApn.isEmpty()) {
         Serial.println("No GPRS APN defined, not connecting");
         return;
@@ -74,6 +77,51 @@ void Gsm::begin() {
     modem.sendAT("+CMEE=2");
     modem.waitResponse();
 #endif
+
+    // Installing root CA
+    modem.sendAT("+FSCREATE=", rootCertFile);
+    if (modem.waitResponse() != 1) {
+        // TODO Handle error
+        return;
+    }
+
+    const int cert_size = rootCert.length();
+
+    modem.sendAT("+FSWRITE=", rootCertFile, ",0,", cert_size, ",10");
+    if (modem.waitResponse(">") != 1) {
+        // TODO Handle error
+        return;
+    }
+
+    for (int i = 0; i < cert_size; i++) {
+        modem.stream.write(rootCert[i]);
+    }
+
+    modem.stream.write(GSM_NL);
+    modem.stream.flush();
+
+    if (modem.waitResponse(2000L) != 1) {
+        // TODO Handle error
+        return;
+    }
+
+    modem.sendAT("+SSLSETCERT=\"", rootCertFile, "\"");
+    if (modem.waitResponse() != 1) {
+        // TODO Handle error
+        return;
+    }
+    if (modem.waitResponse(5000L, GSM_NL "+SSLSETCERT:") != 1) {
+        // TODO Handle error
+        return;
+    }
+    const int retCode = modem.stream.readStringUntil('\n').toInt();
+
+    SerialMon.println();
+    SerialMon.println();
+    SerialMon.println(F("****************************"));
+    SerialMon.print(F("Setting Certificate: "));
+    SerialMon.println((0 == retCode) ? "OK" : "FAILED");
+    SerialMon.println(F("****************************"));
 
     // Unlock SIM card with a PIN if needed
     SimStatus simStatus = modem.getSimStatus();
@@ -114,33 +162,38 @@ void Gsm::begin() {
         Serial.println("Couldn't connect GPRS");
     }
 
-    const char* server = "vsh.pp.ua";
-    const char* resource = "/TinyGSM/logo.txt";
-    Serial.print("Connecting to ");
-    Serial.println(server);
-    if (!client.connect(server, 80)) {
-        Serial.println(" fail");
-        delay(10000);
-        return;
-    }
-    Serial.println(" success");
+    // delay(1000);
+    // Serial.println();
+    // Serial.println();
+    // Serial.println();
 
-    // Make a HTTP GET request:
-    // Server details
-    Serial.println("Performing HTTP GET request...");
-    client.print(String("GET ") + resource + " HTTP/1.1\r\n");
-    client.print(String("Host: ") + server + "\r\n");
-    client.print("Connection: close\r\n\r\n");
-    client.println();
+    // const char* server = "vsh.pp.ua";
+    // const char* resource = "/TinyGSM/logo.txt";
+    // Serial.print("Connecting to ");
+    // Serial.println(server);
+    // if (!client.connect(server, 443)) {
+    //     Serial.println(" fail");
+    //     delay(10000);
+    //     return;
+    // }
+    // Serial.println(" success");
 
-    uint32_t timeout = millis();
-    while (client.connected() && millis() - timeout < 10000L) {
-        // Print available data
-        while (client.available()) {
-            char c = client.read();
-            Serial.print(c);
-            timeout = millis();
-        }
-    }
-    Serial.println();
+    // // Make a HTTP GET request:
+    // // Server details
+    // Serial.println("Performing HTTP GET request...");
+    // client.print(String("GET ") + resource + " HTTP/1.1\r\n");
+    // client.print(String("Host: ") + server + "\r\n");
+    // client.print("Connection: close\r\n\r\n");
+    // client.println();
+
+    // uint32_t timeout = millis();
+    // while (client.connected() && millis() - timeout < 10000L) {
+    //     // Print available data
+    //     while (client.available()) {
+    //         char c = client.read();
+    //         Serial.print(c);
+    //         timeout = millis();
+    //     }
+    // }
+    // Serial.println();
 }
