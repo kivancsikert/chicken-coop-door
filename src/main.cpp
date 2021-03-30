@@ -14,6 +14,7 @@
 #include <ArduinoJson.h>
 
 #include "door.h"
+#include "google-iot-root-cert.h"
 #include "mqtt-handler.h"
 #include "ota.h"
 
@@ -81,9 +82,7 @@ void setup() {
         // Serial.println(WiFi.status());
     }
     WiFi.softAPsetHostname("chickens");
-    Serial.print(" connected, SSID: ");
-    Serial.print(WiFi.SSID());
-    Serial.print(", IP address: ");
+    Serial.print(" connected, IP address: ");
     Serial.print(WiFi.localIP());
     Serial.print(", hostname: ");
     Serial.println(WiFi.softAPgetHostname());
@@ -97,7 +96,7 @@ void setup() {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
     WiFiClientSecure* wifiClient = new WiFiClientSecure();
-    wifiClient->setCACert(root_cert.c_str());
+    wifiClient->setCACert(googleIoTRootCert.c_str());
     mqttHandler.begin(
         wifiClient,
         iotConfigJson,
