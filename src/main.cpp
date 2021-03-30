@@ -17,6 +17,7 @@
 #include "google-iot-root-cert.h"
 #include "mqtt-handler.h"
 #include "ota.h"
+#include "version.h"
 
 Ota ota;
 
@@ -108,6 +109,10 @@ void setup() {
         [](const JsonDocument& json) {
             door.executeCommand(json);
         });
+
+    DynamicJsonDocument stateJson(2048);
+    stateJson["version"] = VERSION;
+    mqttHandler.publishState(stateJson);
 
     door.begin();
 }
