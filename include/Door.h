@@ -6,7 +6,7 @@
 #include <Wire.h>
 
 #include "Config.h"
-#include "mqtt-handler.h"
+#include "MqttHandler.h"
 
 #ifdef ESP32
 

@@ -18,7 +18,7 @@
 #include "Door.h"
 #include "google-iot-root-cert.h"
 #include "GprsHandler.h"
-#include "mqtt-handler.h"
+#include "MqttHandler.h"
 #include "ota.h"
 #include "version.h"
 
