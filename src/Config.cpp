@@ -1,4 +1,4 @@
-#include "config.h"
+#include "Config.h"
 #include <SPIFFS.h>
 #include <limits>
 

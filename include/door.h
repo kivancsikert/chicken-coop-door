@@ -5,7 +5,7 @@
 #include <BH1750.h>
 #include <Wire.h>
 
-#include "config.h"
+#include "Config.h"
 #include "mqtt-handler.h"
 
 #ifdef ESP32

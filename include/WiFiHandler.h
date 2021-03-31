@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.h"
+#include "Config.h"
 #include "WiFi.h"
 
 class WiFiHandler {

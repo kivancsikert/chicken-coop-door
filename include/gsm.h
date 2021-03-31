@@ -14,7 +14,7 @@
 #include <StreamDebugger.h>
 #endif
 
-#include "config.h"
+#include "Config.h"
 
 class Gsm {
 public:
