@@ -14,6 +14,7 @@
 #include <ArduinoJson.h>
 
 #include "DebugClient.h"
+#include "WiFiHandler.h"
 #include "door.h"
 #include "google-iot-root-cert.h"
 #include "gsm.h"
@@ -24,6 +25,8 @@
 Ota ota;
 
 Config config;
+
+WiFiHandler wifi(config);
 
 Gsm gsm(config);
 
@@ -41,7 +44,7 @@ Client& chooseMqttConnection() {
         return gsm.getClient();
     } else {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
-        return wifiClient;
+        return wifi.getClient();
     }
 }
 
@@ -79,35 +82,7 @@ void setup() {
 
     config.begin();
 
-    bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
-    if (!wifiModeSuccessful) {
-        Serial.println("WIFI mode unsuccessful");
-    }
-    delay(500);
-    if (!config.wifiSsid.isEmpty()) {
-        Serial.print("Using stored WIFI configuration to connect to ");
-        Serial.print(config.wifiSsid);
-        Serial.print("...");
-        WiFi.begin(config.wifiSsid.c_str(), config.wifiPassword.c_str());
-    } else {
-        Serial.print("WIFI is not configured, using SmartConfig...");
-        bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
-        if (!smartConfigBeginSuccess) {
-            Serial.print(" unsuccessful");
-        }
-    }
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-        // Serial.print(WiFi.smartConfigDone());
-        // Serial.print(" ");
-        // Serial.println(WiFi.status());
-    }
-    WiFi.softAPsetHostname("chickens");
-    Serial.print(" connected, IP address: ");
-    Serial.print(WiFi.localIP());
-    Serial.print(", hostname: ");
-    Serial.println(WiFi.softAPgetHostname());
+    wifi.begin("chickens");
 
     ota.begin("chickens");
 
