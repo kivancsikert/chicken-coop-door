@@ -2,6 +2,8 @@
 #include <SPIFFS.h>
 #include <limits>
 
+#define CONFIG_FILE "/config.json"
+
 template <typename T>
 T getJsonValue(const JsonDocument& json, const String& key, T defaultValue) {
     if (json.containsKey(key)) {
@@ -12,13 +14,15 @@ T getJsonValue(const JsonDocument& json, const String& key, T defaultValue) {
 }
 
 void Config::begin() {
-    if (SPIFFS.exists("/config.json")) {
-        File configFile = SPIFFS.open("/config.json", FILE_READ);
+    if (SPIFFS.exists(CONFIG_FILE)) {
+        File configFile = SPIFFS.open(CONFIG_FILE, FILE_READ);
         DynamicJsonDocument configJson(configFile.size() * 2);
         deserializeJson(configJson, configFile);
         configFile.close();
         update(configJson);
-        Serial.println("Loaded configuration");
+        Serial.println("Effective configuration:");
+        serializeJsonPretty(configJson, Serial);
+        Serial.println();
     }
 }
 
@@ -60,7 +64,7 @@ void Config::store() {
 
     json["statePublishingInterval"] = statePublishingInterval;
 
-    File configFile = SPIFFS.open("/config.json", FILE_WRITE);
+    File configFile = SPIFFS.open(CONFIG_FILE, FILE_WRITE);
     serializeJson(json, configFile);
     configFile.close();
 }
