@@ -94,6 +94,10 @@ void setup() {
         },
         [](const JsonDocument& json) {
             door.executeCommand(json);
+            if (json.containsKey("restart")) {
+                Serial.println("Restart command received, restarting");
+                ESP.restart();
+            }
         });
 
     DynamicJsonDocument stateJson(2048);
