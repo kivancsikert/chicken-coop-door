@@ -16,9 +16,9 @@
 
 #include "Config.h"
 
-class Gsm {
+class GprsHandler {
 public:
-    Gsm(Config& config);
+    GprsHandler(Config& config);
     bool begin(const String& rootCert);
 
     TinyGsmClient& getClient() {

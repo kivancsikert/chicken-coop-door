@@ -17,7 +17,7 @@
 #include "WiFiHandler.h"
 #include "Door.h"
 #include "google-iot-root-cert.h"
-#include "gsm.h"
+#include "GprsHandler.h"
 #include "mqtt-handler.h"
 #include "ota.h"
 #include "version.h"
@@ -28,7 +28,7 @@ Config config;
 
 WiFiHandler wifi(config);
 
-Gsm gsm(config);
+GprsHandler gprs(config);
 
 MqttHandler mqttHandler;
 
@@ -39,9 +39,9 @@ DebugClient debugClient;
 WiFiClient wifiClient;
 
 Client& chooseMqttConnection() {
-    if (gsm.begin(googleIoTRootCert)) {
+    if (gprs.begin(googleIoTRootCert)) {
         Serial.println("GPRS available, using it for MQTT");
-        return gsm.getClient();
+        return gprs.getClient();
     } else {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
         return wifi.getClient();
