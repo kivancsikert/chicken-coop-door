@@ -28,8 +28,6 @@ WiFiHandler wifi(config);
 GprsHandler gprs(config);
 MqttHandler mqtt;
 Door door(config, mqtt);
-DebugClient debugClient;
-WiFiClient wifiClient;
 
 Client& chooseMqttConnection() {
     if (gprs.begin(googleIoTRootCert)) {
