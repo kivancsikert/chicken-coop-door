@@ -1,7 +1,7 @@
-#include "gsm.h"
+#include "GprsHandler.h"
 #include "lilygo.h"
 
-Gsm::Gsm(Config& config)
+GprsHandler::GprsHandler(Config& config)
     : config(config)
 #ifdef DUMP_AT_COMMANDS
     , debugger(StreamDebugger(SerialAT, Serial))
@@ -15,7 +15,7 @@ Gsm::Gsm(Config& config)
 #define IP5306_ADDR 0x75
 #define IP5306_REG_SYS_CTL0 0x00
 
-void Gsm::setupModem() {
+void GprsHandler::setupModem() {
 #ifdef MODEM_RST
     // Keep reset high
     pinMode(MODEM_RST, OUTPUT);
@@ -40,12 +40,12 @@ void Gsm::setupModem() {
     digitalWrite(LED_GPIO, LED_OFF);
 }
 
-void Gsm::enableNetLight(bool enable) {
+void GprsHandler::enableNetLight(bool enable) {
     SerialMon.println("Turning SIM800 Red LED " + String(enable ? "on" : "off") + "...");
     modem.sendAT("+CNETLIGHT=" + String(enable ? "1" : "0"));
 }
 
-bool Gsm::begin(const String& rootCert) {
+bool GprsHandler::begin(const String& rootCert) {
     if (config.gprsApn.isEmpty()) {
         Serial.println("No GPRS APN defined, not connecting");
         return false;

@@ -14,34 +14,25 @@
 #include <ArduinoJson.h>
 
 #include "DebugClient.h"
+#include "Door.h"
+#include "GprsHandler.h"
+#include "MqttHandler.h"
+#include "OtaHandler.h"
 #include "WiFiHandler.h"
-#include "door.h"
 #include "google-iot-root-cert.h"
-#include "gsm.h"
-#include "mqtt-handler.h"
-#include "ota.h"
 #include "version.h"
 
-Ota ota;
-
+OtaHandler ota;
 Config config;
-
 WiFiHandler wifi(config);
-
-Gsm gsm(config);
-
-MqttHandler mqttHandler;
-
-Door door(config, mqttHandler);
-
-DebugClient debugClient;
-
-WiFiClient wifiClient;
+GprsHandler gprs(config);
+MqttHandler mqtt;
+Door door(config, mqtt);
 
 Client& chooseMqttConnection() {
-    if (gsm.begin(googleIoTRootCert)) {
+    if (gprs.begin(googleIoTRootCert)) {
         Serial.println("GPRS available, using it for MQTT");
-        return gsm.getClient();
+        return gprs.getClient();
     } else {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
         return wifi.getClient();
@@ -93,7 +84,7 @@ void setup() {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
     Client& client = chooseMqttConnection();
-    mqttHandler.begin(
+    mqtt.begin(
         client,
         iotConfigJson,
         [](const JsonDocument& json) {
@@ -107,13 +98,13 @@ void setup() {
 
     DynamicJsonDocument stateJson(2048);
     stateJson["version"] = VERSION;
-    mqttHandler.publishState(stateJson);
+    mqtt.publishState(stateJson);
 
     door.begin();
 }
 
 void loop() {
-    ota.handle();
-    mqttHandler.loop();
+    ota.loop();
+    mqtt.loop();
     door.loop();
 }

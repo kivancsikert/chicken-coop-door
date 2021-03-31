@@ -1,4 +1,4 @@
-#include "door.h"
+#include "Door.h"
 
 #define STEPS_AT_ONCE 100
 
@@ -6,9 +6,9 @@ AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, 
 
 BH1750 lightMeter;
 
-Door::Door(Config& config, MqttHandler& mqttHandler)
+Door::Door(Config& config, MqttHandler& mqtt)
     : config(config)
-    , mqttHandler(mqttHandler) {
+    , mqtt(mqtt) {
 }
 
 void Door::begin() {
@@ -99,6 +99,6 @@ void Door::publishTelemetry(unsigned long currentMillis) {
         json["openSwitch"] = openSwitch;
         json["closedSwitch"] = closedSwitch;
         json["motorPosition"] = motor.currentPosition();
-        mqttHandler.publishTelemetry(json);
+        mqtt.publishTelemetry(json);
     }
 }
