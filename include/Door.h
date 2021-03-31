@@ -16,9 +16,14 @@ enum class GateState {
     CLOSING
 };
 
-class Door {
+class Door
+    : ConfigAware {
 public:
-    Door(Config& config, MqttHandler& mqtt);
+    Door(Config& config, MqttHandler& mqtt)
+        : ConfigAware(config)
+        , mqtt(mqtt) {
+    }
+
     void begin();
 
     /**
@@ -29,7 +34,6 @@ public:
     void executeCommand(const JsonDocument& json);
 
 private:
-    Config& config;
     MqttHandler& mqtt;
 
     /**

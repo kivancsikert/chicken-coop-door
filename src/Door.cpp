@@ -6,11 +6,6 @@ AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, 
 
 BH1750 lightMeter;
 
-Door::Door(Config& config, MqttHandler& mqtt)
-    : config(config)
-    , mqtt(mqtt) {
-}
-
 void Door::begin() {
     pinMode(OPEN_PIN, INPUT_PULLUP);
     pinMode(CLOSED_PIN, INPUT_PULLUP);

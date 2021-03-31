@@ -74,3 +74,13 @@ public:
      */
     unsigned long statePublishingInterval;
 };
+
+class ConfigAware {
+public:
+    ConfigAware(Config& config)
+        : config(config) {
+    }
+
+protected:
+    Config& config;
+};

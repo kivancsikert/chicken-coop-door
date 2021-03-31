@@ -3,10 +3,15 @@
 #include "Config.h"
 #include "WiFi.h"
 
-class WiFiHandler {
+class WiFiHandler
+    : ConfigAware {
 public:
-    WiFiHandler(Config& config);
+    WiFiHandler(Config& config)
+        : ConfigAware(config) {
+    }
+
     void begin(const String& hostname);
+
     Client& getClient() {
         return client;
     }
@@ -15,6 +20,5 @@ private:
     void startWifi();
     bool awaitConnect();
 
-    Config& config;
     WiFiClient client;
 };
