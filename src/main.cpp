@@ -14,6 +14,7 @@
 #include <ArduinoJson.h>
 
 #include "DebugClient.h"
+#include "WiFiHandler.h"
 #include "door.h"
 #include "google-iot-root-cert.h"
 #include "gsm.h"
@@ -24,6 +25,8 @@
 Ota ota;
 
 Config config;
+
+WiFiHandler wifi(config);
 
 Gsm gsm(config);
 
@@ -41,75 +44,8 @@ Client& chooseMqttConnection() {
         return gsm.getClient();
     } else {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
-        return wifiClient;
+        return wifi.getClient();
     }
-}
-
-void startWifi() {
-    if (!config.wifiSsid.isEmpty()) {
-        Serial.print("Using stored WIFI configuration to connect to ");
-        Serial.print(config.wifiSsid);
-        Serial.print("...");
-        WiFi.begin(config.wifiSsid.c_str(), config.wifiPassword.c_str());
-    } else {
-        Serial.print("WIFI is not configured, using SmartConfig...");
-        bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
-        if (!smartConfigBeginSuccess) {
-            Serial.print(" unsuccessful");
-        }
-    }
-}
-
-bool awaitConnect() {
-    unsigned long startTime = millis();
-    while (true) {
-        wl_status_t status = WiFi.status();
-        switch (status) {
-            case WL_CONNECTED:
-                return true;
-            case WL_CONNECT_FAILED:
-                Serial.println("WIFI connection failed");
-                return false;
-            default:
-                break;
-        }
-        // TODO Make WIFI connection timeout configurable
-        if (millis() - startTime > 10 * 1000) {
-            Serial.println("WIFI connection timed out");
-            return false;
-        }
-        delay(500);
-        Serial.print(".");
-    }
-}
-
-void connectWifi() {
-    bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
-    if (!wifiModeSuccessful) {
-        Serial.println("WIFI mode unsuccessful");
-    }
-    delay(500);
-    int retries = 3;
-    while (true) {
-        startWifi();
-        if (awaitConnect()) {
-            break;
-        }
-        WiFi.stopSmartConfig();
-        if (--retries > 0) {
-            continue;
-        }
-        Serial.println("Failed to connect WIFI, restarting");
-        ESP.restart();
-    }
-
-    WiFi.softAPsetHostname("chickens");
-    Serial.print(" connected, IP address: ");
-    Serial.print(WiFi.localIP());
-    Serial.print(", hostname: ");
-    Serial.println(WiFi.softAPgetHostname());
-
-    ota.begin("chickens");
 }
 
 void setup() {
@@ -146,7 +82,9 @@ void setup() {
 
     config.begin();
 
-    connectWifi();
+    wifi.begin("chickens");
+
+    ota.begin("chickens");
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
