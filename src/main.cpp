@@ -23,19 +23,12 @@
 #include "version.h"
 
 OtaHandler ota;
-
 Config config;
-
 WiFiHandler wifi(config);
-
 GprsHandler gprs(config);
-
-MqttHandler mqttHandler;
-
-Door door(config, mqttHandler);
-
+MqttHandler mqtt;
+Door door(config, mqtt);
 DebugClient debugClient;
-
 WiFiClient wifiClient;
 
 Client& chooseMqttConnection() {
@@ -93,7 +86,7 @@ void setup() {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
     Client& client = chooseMqttConnection();
-    mqttHandler.begin(
+    mqtt.begin(
         client,
         iotConfigJson,
         [](const JsonDocument& json) {
@@ -107,13 +100,13 @@ void setup() {
 
     DynamicJsonDocument stateJson(2048);
     stateJson["version"] = VERSION;
-    mqttHandler.publishState(stateJson);
+    mqtt.publishState(stateJson);
 
     door.begin();
 }
 
 void loop() {
     ota.loop();
-    mqttHandler.loop();
+    mqtt.loop();
     door.loop();
 }

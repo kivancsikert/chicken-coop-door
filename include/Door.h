@@ -45,7 +45,7 @@ enum class GateState {
 
 class Door {
 public:
-    Door(Config& config, MqttHandler& mqttHandler);
+    Door(Config& config, MqttHandler& mqtt);
     void begin();
     void loop();
 
@@ -53,7 +53,7 @@ public:
 
 private:
     Config& config;
-    MqttHandler& mqttHandler;
+    MqttHandler& mqtt;
 
     /**
      * The current level of light.
