@@ -1,9 +1,9 @@
-#include "ota.h"
+#include "OtaHandler.h"
 
-Ota::Ota() {
+OtaHandler::OtaHandler() {
 }
 
-void Ota::begin(const char* hostname) {
+void OtaHandler::begin(const char* hostname) {
     ArduinoOTA.setHostname(hostname);
 
     ArduinoOTA.onStart([]() {
@@ -34,6 +34,6 @@ void Ota::begin(const char* hostname) {
     ArduinoOTA.begin();
 }
 
-void Ota::handle() {
+void OtaHandler::loop() {
     ArduinoOTA.handle();
 }

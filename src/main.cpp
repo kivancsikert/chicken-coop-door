@@ -19,10 +19,10 @@
 #include "google-iot-root-cert.h"
 #include "GprsHandler.h"
 #include "MqttHandler.h"
-#include "ota.h"
+#include "OtaHandler.h"
 #include "version.h"
 
-Ota ota;
+OtaHandler ota;
 
 Config config;
 
@@ -113,7 +113,7 @@ void setup() {
 }
 
 void loop() {
-    ota.handle();
+    ota.loop();
     mqttHandler.loop();
     door.loop();
 }

@@ -3,9 +3,9 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 
-class Ota {
+class OtaHandler {
 public:
-    Ota();
+    OtaHandler();
     void begin(const char* hostname);
-    void handle();
+    void loop();
 };
