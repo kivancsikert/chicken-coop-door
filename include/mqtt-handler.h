@@ -12,6 +12,10 @@
 
 #define MQTT_BUFFER_SIZE 4096
 
+// Time (seconds) to expire token += 20 minutes for drift
+// Maximum 24H (3600 * 24)
+#define JWT_EXPIRATION_IN_SECONDS (60 * 60)
+
 class MqttHandler {
 public:
     MqttHandler();
@@ -23,6 +27,7 @@ public:
         std::function<void(JsonDocument&)> onCommand);
     void loop();
 
+    void publishState(const JsonDocument& json);
     void publishTelemetry(const JsonDocument& json);
 
 private:
@@ -45,8 +50,4 @@ private:
 
     std::function<void(JsonDocument&)> onConfigChange;
     std::function<void(JsonDocument&)> onCommand;
-
-    // Time (seconds) to expire token += 20 minutes for drift
-    // Maximum 24H (3600*24)
-    const int jwtExpirationInSeconds = 60 * 20;
 };

@@ -64,10 +64,6 @@ void MqttHandler::begin(Client& netClient,
 #endif
     mqtt->startMQTT();
 
-    // Subscribe to errors
-    // TODO Is this a Google Cloud feature?
-    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/errors", 0);
-
     // Subscribe to delegate configuration
     mqttClient->subscribe("/devices/" + device->getDeviceId() + "/config", 1);
 
@@ -75,16 +71,12 @@ void MqttHandler::begin(Client& netClient,
     mqttClient->subscribe("/devices/" + device->getDeviceId() + "/commands/#", 0);
 
     mqtt->mqttConnect();
-
-    Serial.printf("State topic: %s\n", device->getStateTopic().c_str());
-    Serial.printf("Events topic: %s\n", device->getEventsTopic().c_str());
-    mqtt->loop();
 }
 
 String MqttHandler::getJwt() {
     time_t iss = time(nullptr);
     // Serial.println("Refreshing JWT");
-    String jwt = device->createJWT(iss, jwtExpirationInSeconds);
+    String jwt = device->createJWT(iss, JWT_EXPIRATION_IN_SECONDS);
     // Serial.println(jwt);
     return jwt;
 }
@@ -109,10 +101,16 @@ void MqttHandler::loop() {
     }
 }
 
+void MqttHandler::publishState(const JsonDocument& json) {
+    String payload;
+    serializeJson(json, payload);
+    mqtt->publishState(payload);
+    Serial.println("Published state");
+}
+
 void MqttHandler::publishTelemetry(const JsonDocument& json) {
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry(payload);
-    mqtt->publishTelemetry(payload);
-    mqtt->loop();
+    Serial.println("Published telemetry");
 }

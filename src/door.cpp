@@ -100,6 +100,5 @@ void Door::publishTelemetry(unsigned long currentMillis) {
         json["closedSwitch"] = closedSwitch;
         json["motorPosition"] = motor.currentPosition();
         mqttHandler.publishTelemetry(json);
-        Serial.println("Published state");
     }
 }

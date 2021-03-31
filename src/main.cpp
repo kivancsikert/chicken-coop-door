@@ -19,6 +19,7 @@
 #include "gsm.h"
 #include "mqtt-handler.h"
 #include "ota.h"
+#include "version.h"
 
 Ota ota;
 
@@ -109,13 +110,16 @@ void setup() {
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
-            Serial.println("Received configuration");
             config.store();
-            Serial.println("Stored configuration");
+            Serial.println("Updated local configuration");
         },
         [](const JsonDocument& json) {
             door.executeCommand(json);
         });
+
+    DynamicJsonDocument stateJson(2048);
+    stateJson["version"] = VERSION;
+    mqttHandler.publishState(stateJson);
 
     door.begin();
 }
