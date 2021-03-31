@@ -33,7 +33,7 @@ public:
      */
     bool loop();
 
-    void executeCommand(const JsonDocument& json);
+    void moveTo(long position);
 
 private:
     MqttHandler& mqtt;

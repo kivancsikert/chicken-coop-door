@@ -96,10 +96,14 @@ void setup() {
             Serial.println("Updated local configuration");
         },
         [](const JsonDocument& json) {
-            door.executeCommand(json);
             if (json.containsKey("restart")) {
                 Serial.println("Restart command received, restarting");
                 ESP.restart();
+            }
+            if (json.containsKey("moveTo")) {
+                long targetPosition = json["moveTo"];
+                Serial.println("Moving door to " + String(targetPosition));
+                door.moveTo(targetPosition);
             }
         });
 

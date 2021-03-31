@@ -65,12 +65,8 @@ bool Door::updateMotor() {
     return true;
 }
 
-void Door::executeCommand(const JsonDocument& json) {
-    if (json.containsKey("moveTo")) {
-        long targetPosition = json["moveTo"];
-        Serial.println("Moving door to " + String(targetPosition));
-        motor.moveTo(targetPosition);
-    }
+void Door::moveTo(long position) {
+    motor.moveTo(position);
 }
 
 void Door::publishTelemetry(unsigned long currentMillis) {
