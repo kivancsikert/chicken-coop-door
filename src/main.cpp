@@ -13,8 +13,10 @@
 
 #include <ArduinoJson.h>
 
+#include "DebugClient.h"
 #include "door.h"
 #include "google-iot-root-cert.h"
+#include "gsm.h"
 #include "mqtt-handler.h"
 #include "ota.h"
 #include "version.h"
@@ -23,9 +25,25 @@ Ota ota;
 
 Config config;
 
+Gsm gsm(config);
+
 MqttHandler mqttHandler;
 
 Door door(config, mqttHandler);
+
+DebugClient debugClient;
+
+WiFiClient wifiClient;
+
+Client& chooseMqttConnection() {
+    if (gsm.begin(googleIoTRootCert)) {
+        Serial.println("GPRS available, using it for MQTT");
+        return gsm.getClient();
+    } else {
+        Serial.println("GPRS not available, falling back to WIFI for MQTT");
+        return wifiClient;
+    }
+}
 
 void setup() {
     Serial.begin(115200);
@@ -61,7 +79,10 @@ void setup() {
 
     config.begin();
 
-    WiFi.mode(WIFI_AP_STA);
+    bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
+    if (!wifiModeSuccessful) {
+        Serial.println("WIFI mode unsuccessful");
+    }
     delay(500);
     if (!config.wifiSsid.isEmpty()) {
         Serial.print("Using stored WIFI configuration to connect to ");
@@ -96,10 +117,9 @@ void setup() {
     if (error) {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
-    WiFiClientSecure* wifiClient = new WiFiClientSecure();
-    wifiClient->setCACert(googleIoTRootCert.c_str());
+    Client& client = chooseMqttConnection();
     mqttHandler.begin(
-        wifiClient,
+        client,
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);

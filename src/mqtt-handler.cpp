@@ -1,6 +1,13 @@
 #include "mqtt-handler.h"
 #include <SPIFFS.h>
 
+#include <SSLClient.h>
+#ifdef USE_GOOGLE_LTS_DOMAIN
+#include "google-iot-root-cert-ta-lts.h"
+#else
+#include "google-iot-root-cert-ta-non-lts.h"
+#endif
+
 MqttHandler* instance;
 
 MqttHandler::MqttHandler() {
@@ -16,10 +23,11 @@ void messageReceived(String& topic, String& payload) {
     instance->messageReceived(topic, payload);
 }
 
-void MqttHandler::begin(Client* netClient,
+void MqttHandler::begin(Client& netClient,
     const JsonDocument& config,
     std::function<void(JsonDocument&)> onConfigChange,
     std::function<void(JsonDocument&)> onCommand) {
+    Serial.println("Initializing MQTT connector...");
     this->onConfigChange = onConfigChange;
     this->onCommand = onCommand;
 
@@ -48,7 +56,8 @@ void MqttHandler::begin(Client* netClient,
         true,    // cleanSession
         10000    // timeout
     );
-    mqtt = new CloudIoTCoreMqtt(mqttClient, netClient, device);
+    sslClient = new SSLClient(netClient, TAs, (size_t) TAs_NUM, A0);
+    mqtt = new CloudIoTCoreMqtt(mqttClient, sslClient, device);
     mqtt->setLogConnect(false);
 #ifdef USE_GOOGLE_LTS_DOMAIN
     mqtt->setUseLts(true);
@@ -84,11 +93,15 @@ void MqttHandler::messageReceived(const String& topic, const String& payload) {
 }
 
 void MqttHandler::loop() {
-    mqtt->loop();
+    unsigned long currentTime = millis();
+    if (currentTime - previousLoopMillis > 5000) {
+        previousLoopMillis = currentTime;
+        mqtt->loop();
 
-    if (!mqttClient->connected()) {
-        Serial.println("Reconnecting...");
-        mqtt->mqttConnect();
+        if (!mqttClient->connected()) {
+            Serial.println("Reconnecting...");
+            mqtt->mqttConnect();
+        }
     }
 }
 

@@ -44,6 +44,32 @@ public:
     String wifiPassword;
 
     /**
+     * SIM PIN code.
+     */
+    String simPin;
+
+    /**
+     * GPRS APN.
+     */
+    String gprsApn;
+
+    /**
+     * GPRS username.
+     */
+    String gprsUsername;
+
+    /**
+     * GPRS password.
+     */
+    String gprsPassword;
+
+    /**
+     * Whether to enable GPRS (when it's configured).
+     If not enabled, will prefer WIFI connection.
+     */
+    bool gprsEnable;
+
+    /**
      * Number of milliseconds between publishing state.
      */
     unsigned long statePublishingInterval;
