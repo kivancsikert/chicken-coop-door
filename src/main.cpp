@@ -14,12 +14,12 @@
 #include <ArduinoJson.h>
 
 #include "DebugClient.h"
-#include "WiFiHandler.h"
 #include "Door.h"
-#include "google-iot-root-cert.h"
 #include "GprsHandler.h"
 #include "MqttHandler.h"
 #include "OtaHandler.h"
+#include "WiFiHandler.h"
+#include "google-iot-root-cert.h"
 #include "version.h"
 
 OtaHandler ota;
