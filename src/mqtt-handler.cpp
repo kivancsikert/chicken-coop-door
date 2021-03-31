@@ -93,11 +93,15 @@ void MqttHandler::messageReceived(const String& topic, const String& payload) {
 }
 
 void MqttHandler::loop() {
-    mqtt->loop();
+    unsigned long currentTime = millis();
+    if (currentTime - previousLoopMillis > 5000) {
+        previousLoopMillis = currentTime;
+        mqtt->loop();
 
-    if (!mqttClient->connected()) {
-        Serial.println("Reconnecting...");
-        mqtt->mqttConnect();
+        if (!mqttClient->connected()) {
+            Serial.println("Reconnecting...");
+            mqtt->mqttConnect();
+        }
     }
 }
 
