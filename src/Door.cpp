@@ -2,8 +2,6 @@
 
 #define STEPS_AT_ONCE 100
 
-AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4);
-
 void Door::begin() {
     pinMode(OPEN_PIN, INPUT_PULLUP);
     pinMode(CLOSED_PIN, INPUT_PULLUP);
@@ -14,12 +12,12 @@ void Door::begin() {
     Serial.println("Motor configured");
 
     light.setOnUpdate([this](float currentLight) {
-        if (currentLight < config.closeLightLimit && gateState == GateState::OPEN) {
+        if (currentLight < config.closeLightLimit && state == GateState::OPEN) {
             Serial.println("Closing...");
-            gateState = GateState::CLOSING;
-        } else if (currentLight > config.openLightLimit && gateState == GateState::CLOSED) {
+            state = GateState::CLOSING;
+        } else if (currentLight > config.openLightLimit && state == GateState::CLOSED) {
             Serial.println("Opening...");
-            gateState = GateState::OPENING;
+            state = GateState::OPENING;
         }
     });
 }
@@ -38,39 +36,31 @@ bool Door::updateMotor() {
     closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
     if (!motor.run()) {
-        if (gateState == GateState::OPEN || gateState == GateState::CLOSED) {
+        if (state == GateState::OPEN || state == GateState::CLOSED) {
             motor.disableOutputs();
             delay(250);
             return false;
         }
     }
 
-    if (gateState == GateState::CLOSING) {
+    if (state == GateState::CLOSING) {
         if (closedSwitch) {
             Serial.println("Closed");
             motor.stop();
-            gateState = GateState::CLOSED;
+            state = GateState::CLOSED;
         } else {
             motor.move(-STEPS_AT_ONCE);
         }
-    } else if (gateState == GateState::OPENING) {
+    } else if (state == GateState::OPENING) {
         if (openSwitch) {
             Serial.println("Open");
             motor.stop();
-            gateState = GateState::OPEN;
+            state = GateState::OPEN;
         } else {
             motor.move(STEPS_AT_ONCE);
         }
     }
     return true;
-}
-
-void Door::executeCommand(const JsonDocument& json) {
-    if (json.containsKey("moveTo")) {
-        long targetPosition = json["moveTo"];
-        Serial.println("Moving door to " + String(targetPosition));
-        motor.moveTo(targetPosition);
-    }
 }
 
 void Door::publishTelemetry(unsigned long currentMillis) {
@@ -79,7 +69,7 @@ void Door::publishTelemetry(unsigned long currentMillis) {
 
         DynamicJsonDocument json(2048);
         json["light"] = light.getCurrentLevel();
-        json["gate"] = static_cast<int>(gateState);
+        json["gate"] = static_cast<int>(state);
         json["openSwitch"] = openSwitch;
         json["closedSwitch"] = closedSwitch;
         json["motorPosition"] = motor.currentPosition();

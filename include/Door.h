@@ -23,7 +23,8 @@ public:
     Door(Config& config, MqttHandler& mqtt, LightHandler& light)
         : ConfigAware(config)
         , mqtt(mqtt)
-        , light(light) {
+        , light(light)
+        , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
     }
 
     void begin();
@@ -33,16 +34,22 @@ public:
      */
     bool loop();
 
-    void executeCommand(const JsonDocument& json);
+    void moveTo(long position) {
+        motor.moveTo(position);
+    }
+    void setState(GateState state) {
+        this->state = state;
+    }
 
 private:
     MqttHandler& mqtt;
     LightHandler& light;
+    AccelStepper motor;
 
     /**
      * The state of the gate.
      */
-    GateState gateState = GateState::OPEN;
+    GateState state = GateState::OPEN;
 
     /**
      * Whether the "gate open" switch is engaged or not.
