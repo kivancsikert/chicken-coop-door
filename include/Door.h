@@ -6,6 +6,7 @@
 #include <Wire.h>
 
 #include "Config.h"
+#include "LightHandler.h"
 #include "MqttHandler.h"
 #include "PinAllocation.h"
 
@@ -19,9 +20,10 @@ enum class GateState {
 class Door
     : ConfigAware {
 public:
-    Door(Config& config, MqttHandler& mqtt)
+    Door(Config& config, MqttHandler& mqtt, LightHandler& light)
         : ConfigAware(config)
-        , mqtt(mqtt) {
+        , mqtt(mqtt)
+        , light(light) {
     }
 
     void begin();
@@ -35,11 +37,7 @@ public:
 
 private:
     MqttHandler& mqtt;
-
-    /**
-     * The current level of light.
-     */
-    float currentLight = 0;
+    LightHandler& light;
 
     /**
      * The state of the gate.
@@ -55,8 +53,6 @@ private:
      * Whether the "gate closed" switch is engaged or not.
      */
     bool closedSwitch = false;
-
-    void updateLight(unsigned long currentMillis);
 
     /**
      * Updates the gate state and returns whether the motor is currently moving.
