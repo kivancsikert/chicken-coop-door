@@ -1,9 +1,5 @@
 #include "WiFiHandler.h"
 
-WiFiHandler::WiFiHandler(Config& config)
-    : config(config) {
-}
-
 void WiFiHandler::begin(const String& hostname) {
     bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
     if (!wifiModeSuccessful) {

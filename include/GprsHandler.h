@@ -16,9 +16,20 @@
 
 #include "Config.h"
 
-class GprsHandler {
+class GprsHandler
+    : ConfigAware {
 public:
-    GprsHandler(Config& config);
+    GprsHandler(Config& config)
+        : ConfigAware(config)
+#ifdef DUMP_AT_COMMANDS
+        , debugger(StreamDebugger(SerialAT, Serial))
+        , modem(TinyGsm(debugger))
+#else
+        , modem(TinyGsm(SerialAT))
+#endif
+        , client(TinyGsmClient(modem)) {
+    }
+
     bool begin(const String& rootCert);
 
     TinyGsmClient& getClient() {
@@ -28,8 +39,6 @@ public:
 private:
     void setupModem();
     void enableNetLight(bool enable);
-
-    Config& config;
 
 #ifdef DUMP_AT_COMMANDS
     StreamDebugger debugger;

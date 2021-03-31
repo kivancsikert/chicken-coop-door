@@ -1,17 +1,6 @@
 #include "GprsHandler.h"
 #include "lilygo.h"
 
-GprsHandler::GprsHandler(Config& config)
-    : config(config)
-#ifdef DUMP_AT_COMMANDS
-    , debugger(StreamDebugger(SerialAT, Serial))
-    , modem(TinyGsm(debugger))
-#else
-    , modem(TinyGsm(SerialAT))
-#endif
-    , client(TinyGsmClient(modem)) {
-}
-
 #define IP5306_ADDR 0x75
 #define IP5306_REG_SYS_CTL0 0x00
 

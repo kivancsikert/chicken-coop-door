@@ -16,8 +16,10 @@
 #include "DebugClient.h"
 #include "Door.h"
 #include "GprsHandler.h"
+#include "LightHandler.h"
 #include "MqttHandler.h"
 #include "OtaHandler.h"
+#include "PinAllocation.h"
 #include "WiFiHandler.h"
 #include "google-iot-root-cert.h"
 #include "version.h"
@@ -27,7 +29,8 @@ Config config;
 WiFiHandler wifi(config);
 GprsHandler gprs(config);
 MqttHandler mqtt;
-Door door(config, mqtt);
+LightHandler light(config);
+Door door(config, mqtt, light);
 
 Client& chooseMqttConnection() {
     if (gprs.begin(googleIoTRootCert)) {
@@ -104,11 +107,13 @@ void setup() {
     stateJson["version"] = VERSION;
     mqtt.publishState(stateJson);
 
+    light.begin(LIGHT_SDA, LIGHT_SCL);
     door.begin();
 }
 
 void loop() {
     ota.loop();
+    light.loop();
     bool moving = door.loop();
     // Preserve power by making sure we are not transmitting while the door is moving
     if (!moving) {

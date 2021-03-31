@@ -4,13 +4,6 @@
 
 AccelStepper motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4);
 
-BH1750 lightMeter;
-
-Door::Door(Config& config, MqttHandler& mqtt)
-    : config(config)
-    , mqtt(mqtt) {
-}
-
 void Door::begin() {
     pinMode(OPEN_PIN, INPUT_PULLUP);
     pinMode(CLOSED_PIN, INPUT_PULLUP);
@@ -20,29 +13,7 @@ void Door::begin() {
     motor.setAcceleration(500);
     Serial.println("Motor configured");
 
-    Wire.begin(LIGHT_SDA, LIGHT_SCL);
-    if (lightMeter.begin()) {
-        Serial.println("Light sensor initialised");
-    } else {
-        Serial.println("Error initialising light sensor");
-    }
-}
-
-bool Door::loop() {
-    unsigned long currentMillis = millis();
-    updateLight(currentMillis);
-    bool moving = updateMotor();
-    if (!moving) {
-        publishTelemetry(currentMillis);
-    }
-    return moving;
-}
-
-void Door::updateLight(unsigned long currentMillis) {
-    if (currentMillis - previousLightUpdateMillis > config.lightUpdateInterval) {
-        previousLightUpdateMillis = currentMillis;
-
-        currentLight = lightMeter.readLightLevel();
+    light.setOnUpdate([this](float currentLight) {
         if (currentLight < config.closeLightLimit && gateState == GateState::OPEN) {
             Serial.println("Closing...");
             gateState = GateState::CLOSING;
@@ -50,7 +21,16 @@ void Door::updateLight(unsigned long currentMillis) {
             Serial.println("Opening...");
             gateState = GateState::OPENING;
         }
+    });
+}
+
+bool Door::loop() {
+    unsigned long currentMillis = millis();
+    bool moving = updateMotor();
+    if (!moving) {
+        publishTelemetry(currentMillis);
     }
+    return moving;
 }
 
 bool Door::updateMotor() {
@@ -98,7 +78,7 @@ void Door::publishTelemetry(unsigned long currentMillis) {
         previousStatePublishMillis = currentMillis;
 
         DynamicJsonDocument json(2048);
-        json["light"] = currentLight;
+        json["light"] = light.getCurrentLevel();
         json["gate"] = static_cast<int>(gateState);
         json["openSwitch"] = openSwitch;
         json["closedSwitch"] = closedSwitch;
