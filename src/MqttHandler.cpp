@@ -58,18 +58,11 @@ void MqttHandler::begin(Client& netClient,
     );
     sslClient = new SSLClient(netClient, TAs, (size_t) TAs_NUM, A0);
     mqtt = new CloudIoTCoreMqtt(mqttClient, sslClient, device);
-    mqtt->setLogConnect(false);
+    mqtt->setLogConnect(true);
 #ifdef USE_GOOGLE_LTS_DOMAIN
     mqtt->setUseLts(true);
 #endif
     mqtt->startMQTT();
-
-    // Subscribe to delegate configuration
-    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/config", 1);
-
-    // Subscribe to delegate commands
-    mqttClient->subscribe("/devices/" + device->getDeviceId() + "/commands/#", 0);
-
     mqtt->mqttConnect();
 }
 
@@ -93,15 +86,11 @@ void MqttHandler::messageReceived(const String& topic, const String& payload) {
 }
 
 void MqttHandler::loop() {
-    unsigned long currentTime = millis();
-    if (currentTime - previousLoopMillis > 5000) {
-        previousLoopMillis = currentTime;
-        mqtt->loop();
+    mqtt->loop();
 
-        if (!mqttClient->connected()) {
-            Serial.println("Reconnecting...");
-            mqtt->mqttConnect();
-        }
+    if (!mqttClient->connected()) {
+        Serial.println("Reconnecting...");
+        mqtt->mqttConnect();
     }
 }
 

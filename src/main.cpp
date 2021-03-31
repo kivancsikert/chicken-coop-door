@@ -105,6 +105,9 @@ void setup() {
 
 void loop() {
     ota.loop();
-    mqtt.loop();
-    door.loop();
+    bool moving = door.loop();
+    // Preserve power by making sure we are not transmitting while the door is moving
+    if (!moving) {
+        mqtt.loop();
+    }
 }
