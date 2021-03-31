@@ -19,7 +19,7 @@
 class Gsm {
 public:
     Gsm(Config& config);
-    void begin(const String& rootCert);
+    bool begin(const String& rootCert);
 
     TinyGsmClient& getClient() {
         return client;

@@ -33,6 +33,18 @@ Door door(config, mqttHandler);
 
 DebugClient debugClient;
 
+WiFiClient wifiClient;
+
+Client& chooseMqttConnection() {
+    if (gsm.begin(googleIoTRootCert)) {
+        Serial.println("GPRS available, using it for MQTT");
+        return gsm.getClient();
+    } else {
+        Serial.println("GPRS not available, falling back to WIFI for MQTT");
+        return wifiClient;
+    }
+}
+
 void setup() {
     Serial.begin(115200);
 
@@ -67,7 +79,10 @@ void setup() {
 
     config.begin();
 
-    WiFi.mode(WIFI_AP_STA);
+    bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
+    if (!wifiModeSuccessful) {
+        Serial.println("WIFI mode unsuccessful");
+    }
     delay(500);
     if (!config.wifiSsid.isEmpty()) {
         Serial.print("Using stored WIFI configuration to connect to ");
@@ -96,17 +111,15 @@ void setup() {
 
     ota.begin("chickens");
 
-    gsm.begin(googleIoTRootCert);
-
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
     DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
     if (error) {
         Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
     }
-    debugClient.delegateTo(&gsm.getClient());
+    Client& client = chooseMqttConnection();
     mqttHandler.begin(
-        debugClient,
+        client,
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);

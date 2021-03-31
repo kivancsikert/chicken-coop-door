@@ -45,10 +45,15 @@ void Gsm::enableNetLight(bool enable) {
     modem.sendAT("+CNETLIGHT=" + String(enable ? "1" : "0"));
 }
 
-void Gsm::begin(const String& rootCert) {
+bool Gsm::begin(const String& rootCert) {
     if (config.gprsApn.isEmpty()) {
         Serial.println("No GPRS APN defined, not connecting");
-        return;
+        return false;
+    }
+
+    if (!config.gprsEnable) {
+        Serial.println("GPRS not enabled");
+        return false;
     }
 
     Serial.println("Initializing modem...");
@@ -61,7 +66,10 @@ void Gsm::begin(const String& rootCert) {
     // TODO Add a command for this?
     // Restart SIM800 module, it takes quite some time
     // To skip it, call init() instead of restart()
-    modem.init();
+    if (!modem.init()) {
+        Serial.println("Could not initialize modem");
+        return false;
+    }
     // use modem.init() if you don't need the complete restart
 
     // Turn off network status lights to reduce current consumption
@@ -83,69 +91,28 @@ void Gsm::begin(const String& rootCert) {
         modem.simUnlock(config.simPin.c_str());
     }
 
-    Serial.print("Waiting for network...");
+    Serial.println("Waiting for network...");
     // TODO Make network wait configurable
-    if (!modem.waitForNetwork(240000L)) {
-        Serial.println(" fail");
-        // TODO Handle error
-        delay(10000);
-        return;
+    if (!modem.waitForNetwork(240000L) || !modem.isNetworkConnected()) {
+        Serial.println("Could not connect to network");
+        return false;
     }
-    Serial.println(" success");
     // TODO Report this as part of the device status
-    Serial.println("GSM signal quality: " + String(modem.getSignalQuality()));
+    Serial.println("Connected, GSM signal quality: " + String(modem.getSignalQuality()));
 
     // When the network connection is successful, turn on the indicator
     digitalWrite(LED_GPIO, LED_ON);
 
-    if (modem.isNetworkConnected()) {
-        SerialMon.println("Network connected");
-    }
-
     Serial.println("Connecting to GPRS at " + config.gprsApn + "...");
-    modem.gprsConnect(
+    bool gprsConnectSuccessful = modem.gprsConnect(
         config.gprsApn.c_str(),
         config.gprsUsername.isEmpty() ? nullptr : config.gprsUsername.c_str(),
         config.gprsPassword.isEmpty() ? nullptr : config.gprsPassword.c_str());
-    if (modem.isGprsConnected()) {
-        Serial.println("GPRS connected");
-    } else {
-        // TODO Handle error
+    if (!gprsConnectSuccessful || !modem.isGprsConnected()) {
         Serial.println("Couldn't connect GPRS");
+        return false;
     }
 
-    // delay(1000);
-    // Serial.println();
-    // Serial.println();
-    // Serial.println();
-
-    // const char* server = "vsh.pp.ua";
-    // const char* resource = "/TinyGSM/logo.txt";
-    // Serial.print("Connecting to ");
-    // Serial.println(server);
-    // if (!client.connect(server, 443)) {
-    //     Serial.println(" fail");
-    //     delay(10000);
-    //     return;
-    // }
-    // Serial.println(" success");
-
-    // // Make a HTTP GET request:
-    // // Server details
-    // Serial.println("Performing HTTP GET request...");
-    // client.print(String("GET ") + resource + " HTTP/1.1\r\n");
-    // client.print(String("Host: ") + server + "\r\n");
-    // client.print("Connection: close\r\n\r\n");
-    // client.println();
-
-    // uint32_t timeout = millis();
-    // while (client.connected() && millis() - timeout < 10000L) {
-    //     // Print available data
-    //     while (client.available()) {
-    //         char c = client.read();
-    //         Serial.print(c);
-    //         timeout = millis();
-    //     }
-    // }
-    // Serial.println();
+    Serial.println("GPRS connected");
+    return true;
 }

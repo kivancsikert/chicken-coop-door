@@ -64,6 +64,12 @@ public:
     String gprsPassword;
 
     /**
+     * Whether to enable GPRS (when it's configured).
+     If not enabled, will prefer WIFI connection.
+     */
+    bool gprsEnable;
+
+    /**
      * Number of milliseconds between publishing state.
      */
     unsigned long statePublishingInterval;
