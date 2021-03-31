@@ -58,7 +58,7 @@ void MqttHandler::begin(Client& netClient,
     );
     sslClient = new SSLClient(netClient, TAs, (size_t) TAs_NUM, A0);
     mqtt = new CloudIoTCoreMqtt(mqttClient, sslClient, device);
-    mqtt->setLogConnect(true);
+    mqtt->setLogConnect(false);
 #ifdef USE_GOOGLE_LTS_DOMAIN
     mqtt->setUseLts(true);
 #endif
