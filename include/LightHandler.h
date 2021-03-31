@@ -5,6 +5,7 @@
 #include <BH1750.h>
 #include <Wire.h>
 #include <functional>
+#include <deque>
 
 class LightHandler
     : public TimedLoopable {
@@ -33,6 +34,8 @@ private:
     Config& config;
     BH1750 sensor;
 
+    std::deque<float> measurements;
+    double sum;
     std::function<void(float)> onUpdate;
 
     float currentLevel = 0;

@@ -11,5 +11,15 @@ void LightHandler::begin(int sda, int scl) {
 
 void LightHandler::timedLoop() {
     currentLevel = sensor.readLightLevel();
-    onUpdate(currentLevel);
+
+    int maxMaxmeasurements = config.lightLatencyInterval / config.lightUpdateInterval;
+    while (measurements.size() >= maxMaxmeasurements) {
+        sum -= measurements.front();
+        measurements.pop_front();
+    }
+    measurements.emplace_back(currentLevel);
+    sum += currentLevel;
+
+    double averageLevel = sum / measurements.size();
+    onUpdate(averageLevel);
 }
