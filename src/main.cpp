@@ -105,6 +105,12 @@ void setup() {
                 Serial.println("Moving door to " + String(targetPosition));
                 door.moveTo(targetPosition);
             }
+            if (json.containsKey("setState")) {
+                int targetStateValue = json["setState"];
+                GateState targetState = static_cast<GateState>(targetStateValue);
+                Serial.println("Setting door state to " + String(targetStateValue));
+                door.setState(targetState);
+            }
         });
 
     DynamicJsonDocument stateJson(2048);
