@@ -1,4 +1,4 @@
-#include "door.h"
+#include "Door.h"
 
 #define STEPS_AT_ONCE 100
 

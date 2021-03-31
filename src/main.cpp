@@ -15,7 +15,7 @@
 
 #include "DebugClient.h"
 #include "WiFiHandler.h"
-#include "door.h"
+#include "Door.h"
 #include "google-iot-root-cert.h"
 #include "gsm.h"
 #include "mqtt-handler.h"
