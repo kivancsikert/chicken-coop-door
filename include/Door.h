@@ -47,7 +47,11 @@ class Door {
 public:
     Door(Config& config, MqttHandler& mqtt);
     void begin();
-    void loop();
+
+    /**
+     * Loops the door, and returns whether the door is currently moving.
+     */
+    bool loop();
 
     void executeCommand(const JsonDocument& json);
 
@@ -76,7 +80,11 @@ private:
     bool closedSwitch = false;
 
     void updateLight(unsigned long currentMillis);
-    void updateMotor();
+
+    /**
+     * Updates the gate state and returns whether the motor is currently moving.
+     */
+    bool updateMotor();
     void publishTelemetry(unsigned long currentMillis);
 
     unsigned long previousLightUpdateMillis = 0;

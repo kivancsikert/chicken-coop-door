@@ -50,6 +50,4 @@ private:
 
     std::function<void(JsonDocument&)> onConfigChange;
     std::function<void(JsonDocument&)> onCommand;
-
-    unsigned long previousLoopMillis = 0;
 };

@@ -28,11 +28,14 @@ void Door::begin() {
     }
 }
 
-void Door::loop() {
+bool Door::loop() {
     unsigned long currentMillis = millis();
     updateLight(currentMillis);
-    updateMotor();
-    publishTelemetry(currentMillis);
+    bool moving = updateMotor();
+    if (!moving) {
+        publishTelemetry(currentMillis);
+    }
+    return moving;
 }
 
 void Door::updateLight(unsigned long currentMillis) {
@@ -50,7 +53,7 @@ void Door::updateLight(unsigned long currentMillis) {
     }
 }
 
-void Door::updateMotor() {
+bool Door::updateMotor() {
     openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
@@ -58,7 +61,7 @@ void Door::updateMotor() {
         if (gateState == GateState::OPEN || gateState == GateState::CLOSED) {
             motor.disableOutputs();
             delay(250);
-            return;
+            return false;
         }
     }
 
@@ -79,6 +82,7 @@ void Door::updateMotor() {
             motor.move(STEPS_AT_ONCE);
         }
     }
+    return true;
 }
 
 void Door::executeCommand(const JsonDocument& json) {
