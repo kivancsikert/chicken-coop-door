@@ -67,6 +67,5 @@ private:
     bool updateMotor();
     void publishTelemetry(unsigned long currentMillis);
 
-    unsigned long previousLightUpdateMillis = 0;
     unsigned long previousStatePublishMillis = 0;
 };
