@@ -40,7 +40,7 @@ bool GprsHandler::begin(const String& rootCert) {
         return false;
     }
 
-    if (!config.gprsEnable) {
+    if (!config.gprsEnabled) {
         Serial.println("GPRS not enabled");
         return false;
     }
