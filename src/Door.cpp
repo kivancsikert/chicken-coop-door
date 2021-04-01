@@ -32,6 +32,10 @@ bool Door::loop() {
 }
 
 bool Door::updateMotor() {
+    if (!config.motorEnabled) {
+        return false;
+    }
+
     openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 

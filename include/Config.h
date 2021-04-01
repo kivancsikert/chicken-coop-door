@@ -29,6 +29,11 @@ public:
     unsigned long lightLatencyInterval;
 
     /**
+     * Is moving the door enabled?
+     */
+    bool motorEnabled;
+
+    /**
      * Whether to invert the "gate open" switch or not.
      */
     bool invertOpenSwitch;
