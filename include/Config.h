@@ -34,6 +34,12 @@ public:
     bool motorEnabled;
 
     /**
+     * Maximum time in milliseconds to take to open or close the door.
+     * After that time the motor will stop and the door will be disabled.
+     */
+    unsigned long movementTimeout;
+
+    /**
      * Whether to invert the "gate open" switch or not.
      */
     bool invertOpenSwitch;

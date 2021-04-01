@@ -52,6 +52,11 @@ private:
     GateState state = GateState::OPEN;
 
     /**
+     * Is the door disabled because its movement timed out?
+     */
+    bool emergencyStop = false;
+
+    /**
      * Whether the "gate open" switch is engaged or not.
      */
     bool openSwitch = false;
@@ -64,9 +69,21 @@ private:
     /**
      * Updates the gate state and returns whether the motor is currently moving.
      */
-    bool updateMotor();
+    bool updateMotor(unsigned long currentMillis);
+
+    /**
+     * Starts to move the motor towards opening or closing.
+     */
+    void startMoving(GateState state);
+
+    /**
+     * Advances the motor in the given direction.
+     */
+    void advanceMotor(unsigned long currentMillis, long steps);
+
     void publishTelemetry(unsigned long currentMillis);
 
-    unsigned long previousLightUpdateMillis = 0;
     unsigned long previousStatePublishMillis = 0;
+
+    unsigned long movementStarted;
 };

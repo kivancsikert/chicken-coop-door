@@ -14,37 +14,35 @@ void Door::begin() {
     light.setOnUpdate([this](float currentLight) {
         if (currentLight < config.closeLightLimit && state == GateState::OPEN) {
             Serial.println("Closing...");
-            state = GateState::CLOSING;
+            startMoving(GateState::CLOSING);
         } else if (currentLight > config.openLightLimit && state == GateState::CLOSED) {
             Serial.println("Opening...");
-            state = GateState::OPENING;
+            startMoving(GateState::OPENING);
         }
     });
 }
 
 bool Door::loop() {
     unsigned long currentMillis = millis();
-    bool moving = updateMotor();
+    bool moving = updateMotor(currentMillis);
     if (!moving) {
         publishTelemetry(currentMillis);
     }
     return moving;
 }
 
-bool Door::updateMotor() {
-    if (!config.motorEnabled) {
-        return false;
-    }
-
+bool Door::updateMotor(unsigned long currentMillis) {
     openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
     closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
 
-    if (!motor.run()) {
-        if (state == GateState::OPEN || state == GateState::CLOSED) {
-            motor.disableOutputs();
-            delay(250);
-            return false;
-        }
+    bool movementExpected = !emergencyStop
+        && config.motorEnabled
+        && (motor.run() || state == GateState::OPENING || state == GateState::CLOSING);
+
+    if (!movementExpected) {
+        motor.disableOutputs();
+        delay(250);
+        return false;
     }
 
     if (state == GateState::CLOSING) {
@@ -53,7 +51,7 @@ bool Door::updateMotor() {
             motor.stop();
             state = GateState::CLOSED;
         } else {
-            motor.move(-STEPS_AT_ONCE);
+            advanceMotor(currentMillis, -STEPS_AT_ONCE);
         }
     } else if (state == GateState::OPENING) {
         if (openSwitch) {
@@ -61,10 +59,23 @@ bool Door::updateMotor() {
             motor.stop();
             state = GateState::OPEN;
         } else {
-            motor.move(STEPS_AT_ONCE);
+            advanceMotor(currentMillis, STEPS_AT_ONCE);
         }
     }
     return true;
+}
+
+void Door::startMoving(GateState state) {
+    this->state = state;
+    movementStarted = millis();
+}
+
+void Door::advanceMotor(unsigned long currentMillis, long steps) {
+    if (currentMillis - movementStarted > config.movementTimeout) {
+        Serial.println("Move timed out, emergency stopping");
+        emergencyStop = true;
+    }
+    motor.move(steps);
 }
 
 void Door::publishTelemetry(unsigned long currentMillis) {
@@ -72,6 +83,7 @@ void Door::publishTelemetry(unsigned long currentMillis) {
         previousStatePublishMillis = currentMillis;
 
         DynamicJsonDocument json(2048);
+        json["emergencyStop"] = emergencyStop;
         json["light"] = light.getCurrentLevel();
         json["gate"] = static_cast<int>(state);
         json["openSwitch"] = openSwitch;
