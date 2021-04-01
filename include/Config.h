@@ -24,6 +24,11 @@ public:
     unsigned long lightUpdateInterval;
 
     /**
+     * The size of the moving window to abserve to smooth over light fluctuations.
+     */
+    unsigned long lightLatencyInterval;
+
+    /**
      * Whether to invert the "gate open" switch or not.
      */
     bool invertOpenSwitch;
