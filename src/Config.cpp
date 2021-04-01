@@ -32,6 +32,7 @@ void Config::update(const JsonDocument& json) {
     lightUpdateInterval = getJsonValue(json, "lightUpdateInterval", 1000);
     lightLatencyInterval = getJsonValue(json, "lightLatencyInterval", 5000);
 
+    motorEnabled = getJsonValue(json, "motorEnabled", true);
     invertOpenSwitch = getJsonValue(json, "invertOpenSwitch", false);
     invertCloseSwitch = getJsonValue(json, "invertCloseSwitch", false);
 
@@ -54,6 +55,7 @@ void Config::store() {
     json["lightUpdateInterval"] = lightUpdateInterval;
     json["lightLatencyInterval"] = lightLatencyInterval;
 
+    json["motorEnabled"] = motorEnabled;
     json["invertOpenSwitch"] = invertOpenSwitch;
     json["invertCloseSwitch"] = invertCloseSwitch;
 
