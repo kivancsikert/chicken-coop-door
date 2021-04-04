@@ -36,9 +36,13 @@ Client& chooseMqttConnection() {
     if (gprs.begin(googleIoTRootCert)) {
         Serial.println("GPRS available, using it for MQTT");
         return gprs.getClient();
-    } else {
+    } else if (config.wifiEnabled) {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
         return wifi.getClient();
+    } else {
+        Serial.println("Neither WIFI nor GPRS available, restarting");
+        delay(10000);
+        ESP.restart();
     }
 }
 
@@ -76,9 +80,10 @@ void setup() {
 
     config.begin();
 
-    wifi.begin("chickens");
-
-    ota.begin("chickens");
+    if (config.wifiEnabled) {
+        wifi.begin("chickens");
+        ota.begin("chickens");
+    }
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
@@ -122,6 +127,7 @@ void setup() {
 }
 
 void loop() {
+    // It's okay to loop OTA unconditionally, it will ignore the call if not initialized
     ota.loop();
     light.loop();
     bool moving = door.loop();
