@@ -10,7 +10,7 @@
 
 #include "DebugClient.h"
 
-#define MQTT_BUFFER_SIZE 4096
+#define MQTT_BUFFER_SIZE 2048
 
 // Time (seconds) to expire token += 20 minutes for drift
 // Maximum 24H (3600 * 24)
