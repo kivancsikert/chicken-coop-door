@@ -12,10 +12,10 @@ void Door::begin() {
     Serial.println("Motor configured");
 
     light.setOnUpdate([this](float currentLight) {
-        if (currentLight < config.closeLightLimit && state == GateState::OPEN) {
+        if (currentLight < config.closeLightLimit && state != GateState::CLOSED && state != GateState::CLOSING) {
             Serial.println("Closing...");
             startMoving(GateState::CLOSING);
-        } else if (currentLight > config.openLightLimit && state == GateState::CLOSED) {
+        } else if (currentLight > config.openLightLimit && state != GateState::OPEN && state != GateState::OPENING) {
             Serial.println("Opening...");
             startMoving(GateState::OPENING);
         }
