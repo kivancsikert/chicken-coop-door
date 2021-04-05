@@ -35,6 +35,13 @@ SwitchHandler openSwitch(OPEN_PIN, []() { return config.invertOpenSwitch; });
 SwitchHandler closedSwitch(CLOSED_PIN, []() { return config.invertCloseSwitch; });
 Door door(config, mqtt, light, openSwitch, closedSwitch);
 
+String fatalError(String message) {
+    Serial.println(message);
+    delay(10000);
+    ESP.restart();
+    return "Should never get here";
+}
+
 Client& chooseMqttConnection() {
     if (gprs.begin(googleIoTRootCert)) {
         Serial.println("GPRS available, using it for MQTT");
@@ -43,9 +50,7 @@ Client& chooseMqttConnection() {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
         return wifi.getClient();
     } else {
-        Serial.println("Neither WIFI nor GPRS available, restarting");
-        delay(10000);
-        ESP.restart();
+        throw fatalError("Neither WIFI nor GPRS available, restarting");
     }
 }
 
@@ -61,7 +66,7 @@ void setup() {
     Serial.println("Starting up file system...");
 #ifdef ESP32
     if (!SPIFFS.begin()) {
-        Serial.println("Failed.");
+        throw fatalError("Could not initialize file system");
     }
 
     Serial.println("Contents:");
@@ -92,7 +97,7 @@ void setup() {
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
     DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
     if (error) {
-        Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
+        throw fatalError("Failed to read IoT config file: " + String(error.c_str()));
     }
     Client& client = chooseMqttConnection();
     mqtt.begin(
