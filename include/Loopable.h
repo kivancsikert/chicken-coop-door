@@ -7,7 +7,8 @@ public:
     virtual void loop() = 0;
 };
 
-class TimedLoopable : Loopable {
+class TimedLoopable
+    : public Loopable {
 public:
     void loop() override {
         unsigned long currentTimeMillis = millis();

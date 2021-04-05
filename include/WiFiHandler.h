@@ -6,7 +6,7 @@
 class WiFiHandler
     : ConfigAware {
 public:
-    WiFiHandler(Config& config)
+    WiFiHandler(const Config& config)
         : ConfigAware(config) {
     }
 

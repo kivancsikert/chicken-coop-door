@@ -20,6 +20,7 @@
 #include "MqttHandler.h"
 #include "OtaHandler.h"
 #include "PinAllocation.h"
+#include "SwitchHandler.h"
 #include "WiFiHandler.h"
 #include "google-iot-root-cert.h"
 #include "version.h"
@@ -30,7 +31,9 @@ WiFiHandler wifi(config);
 GprsHandler gprs(config);
 MqttHandler mqtt;
 LightHandler light(config);
-Door door(config, mqtt, light);
+SwitchHandler openSwitch(OPEN_PIN, []() { return config.invertOpenSwitch; });
+SwitchHandler closedSwitch(CLOSED_PIN, []() { return config.invertCloseSwitch; });
+Door door(config, mqtt, light, openSwitch, closedSwitch);
 
 Client& chooseMqttConnection() {
     if (gprs.begin(googleIoTRootCert)) {
@@ -123,6 +126,8 @@ void setup() {
     mqtt.publishState(stateJson);
 
     light.begin(LIGHT_SDA, LIGHT_SCL);
+    openSwitch.begin();
+    closedSwitch.begin();
     door.begin();
 }
 
@@ -130,6 +135,8 @@ void loop() {
     // It's okay to loop OTA unconditionally, it will ignore the call if not initialized
     ota.loop();
     light.loop();
+    openSwitch.loop();
+    closedSwitch.loop();
     bool moving = door.loop();
     // Preserve power by making sure we are not transmitting while the door is moving
     if (!moving) {

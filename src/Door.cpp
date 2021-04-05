@@ -3,9 +3,6 @@
 #define STEPS_AT_ONCE 100
 
 void Door::begin() {
-    pinMode(OPEN_PIN, INPUT_PULLUP);
-    pinMode(CLOSED_PIN, INPUT_PULLUP);
-
     motor.setMaxSpeed(500);
     motor.setSpeed(500);
     motor.setAcceleration(500);
@@ -32,9 +29,6 @@ bool Door::loop() {
 }
 
 bool Door::updateMotor(unsigned long currentMillis) {
-    openSwitch = digitalRead(OPEN_PIN) ^ config.invertOpenSwitch;
-    closedSwitch = digitalRead(CLOSED_PIN) ^ config.invertCloseSwitch;
-
     bool movementExpected = !emergencyStop
         && config.motorEnabled
         && (motor.run() || state == GateState::OPENING || state == GateState::CLOSING);
@@ -46,7 +40,7 @@ bool Door::updateMotor(unsigned long currentMillis) {
     }
 
     if (state == GateState::CLOSING) {
-        if (closedSwitch) {
+        if (closedSwitch.getState()) {
             Serial.println("Closed");
             motor.stop();
             state = GateState::CLOSED;
@@ -54,7 +48,7 @@ bool Door::updateMotor(unsigned long currentMillis) {
             advanceMotor(currentMillis, -STEPS_AT_ONCE);
         }
     } else if (state == GateState::OPENING) {
-        if (openSwitch) {
+        if (openSwitch.getState()) {
             Serial.println("Open");
             motor.stop();
             state = GateState::OPEN;
@@ -86,8 +80,8 @@ void Door::publishTelemetry(unsigned long currentMillis) {
         json["emergencyStop"] = emergencyStop;
         json["light"] = light.getCurrentLevel();
         json["gate"] = static_cast<int>(state);
-        json["openSwitch"] = openSwitch;
-        json["closedSwitch"] = closedSwitch;
+        json["openSwitch"] = openSwitch.getState();
+        json["closedSwitch"] = closedSwitch.getState();
         json["motorPosition"] = motor.currentPosition();
         mqtt.publishTelemetry(json);
     }

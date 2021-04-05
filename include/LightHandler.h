@@ -8,10 +8,10 @@
 #include <deque>
 
 class LightHandler
-    : public TimedLoopable {
+    : public TimedLoopable, ConfigAware {
 public:
-    LightHandler(Config& config)
-        : config(config) {
+    LightHandler(const Config& config)
+        : ConfigAware(config) {
     }
 
     void begin(int sda, int scl);
@@ -31,7 +31,6 @@ protected:
     void timedLoop() override;
 
 private:
-    Config& config;
     BH1750 sensor;
 
     std::deque<float> measurements;

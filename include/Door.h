@@ -9,6 +9,7 @@
 #include "LightHandler.h"
 #include "MqttHandler.h"
 #include "PinAllocation.h"
+#include "SwitchHandler.h"
 
 enum class GateState {
     OPEN,
@@ -20,10 +21,12 @@ enum class GateState {
 class Door
     : ConfigAware {
 public:
-    Door(Config& config, MqttHandler& mqtt, LightHandler& light)
+    Door(const Config& config, MqttHandler& mqtt, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)
         , mqtt(mqtt)
         , light(light)
+        , openSwitch(openSwitch)
+        , closedSwitch(closedSwitch)
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
     }
 
@@ -44,6 +47,8 @@ public:
 private:
     MqttHandler& mqtt;
     LightHandler& light;
+    SwitchHandler& openSwitch;
+    SwitchHandler& closedSwitch;
     AccelStepper motor;
 
     /**
@@ -55,16 +60,6 @@ private:
      * Is the door disabled because its movement timed out?
      */
     bool emergencyStop = false;
-
-    /**
-     * Whether the "gate open" switch is engaged or not.
-     */
-    bool openSwitch = false;
-
-    /**
-     * Whether the "gate closed" switch is engaged or not.
-     */
-    bool closedSwitch = false;
 
     /**
      * Updates the gate state and returns whether the motor is currently moving.
