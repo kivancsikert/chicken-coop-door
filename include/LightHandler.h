@@ -4,11 +4,12 @@
 #include "Loopable.h"
 #include <BH1750.h>
 #include <Wire.h>
-#include <functional>
 #include <deque>
+#include <functional>
 
 class LightHandler
-    : public TimedLoopable, ConfigAware {
+    : public TimedLoopable,
+      ConfigAware {
 public:
     LightHandler(const Config& config)
         : ConfigAware(config) {
