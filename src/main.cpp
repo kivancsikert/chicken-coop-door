@@ -26,15 +26,17 @@
 #include "google-iot-root-cert.h"
 #include "version.h"
 
-OtaHandler ota;
 Config config;
+OtaHandler ota;
 WiFiHandler wifi(config);
 GprsHandler gprs(config);
-MqttHandler mqtt;
+
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
 SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
-Door door(config, mqtt, light, openSwitch, closedSwitch);
+Door door(config, light, openSwitch, closedSwitch);
+
+MqttHandler mqtt;
 TelemetryPublisher telemetryPublisher(config, mqtt, { &light, &openSwitch, &closedSwitch, &door });
 
 String fatalError(String message) {

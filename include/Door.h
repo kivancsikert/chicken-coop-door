@@ -7,7 +7,6 @@
 
 #include "Config.h"
 #include "LightHandler.h"
-#include "MqttHandler.h"
 #include "PinAllocation.h"
 #include "SwitchHandler.h"
 #include "Telemetry.h"
@@ -23,9 +22,8 @@ class Door
     : public TelemetryProvider,
       private ConfigAware {
 public:
-    Door(const Config& config, MqttHandler& mqtt, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
+    Door(const Config& config, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)
-        , mqtt(mqtt)
         , light(light)
         , openSwitch(openSwitch)
         , closedSwitch(closedSwitch)
@@ -48,7 +46,6 @@ public:
     void populateTelemetry(JsonDocument& json) override;
 
 private:
-    MqttHandler& mqtt;
     LightHandler& light;
     SwitchHandler& openSwitch;
     SwitchHandler& closedSwitch;
