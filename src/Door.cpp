@@ -65,7 +65,6 @@ void Door::advanceMotor(long steps) {
 
 void Door::populateTelemetry(JsonDocument& json) {
     json["emergencyStop"] = emergencyStop;
-    json["light"] = light.getCurrentLevel();
     json["gate"] = static_cast<int>(state);
     json["openSwitch"] = openSwitch.getState();
     json["closedSwitch"] = closedSwitch.getState();

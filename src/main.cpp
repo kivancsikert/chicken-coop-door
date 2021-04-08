@@ -35,7 +35,7 @@ LightHandler light(config);
 SwitchHandler openSwitch(OPEN_PIN, []() { return config.invertOpenSwitch; });
 SwitchHandler closedSwitch(CLOSED_PIN, []() { return config.invertCloseSwitch; });
 Door door(config, mqtt, light, openSwitch, closedSwitch);
-TelemetryPublisher telemetryPublisher(config, mqtt, { &door });
+TelemetryPublisher telemetryPublisher(config, mqtt, { &light, &door });
 
 String fatalError(String message) {
     Serial.println(message);

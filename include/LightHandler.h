@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "Loopable.h"
+#include "Telemetry.h"
 #include <BH1750.h>
 #include <Wire.h>
 #include <deque>
@@ -9,6 +10,7 @@
 
 class LightHandler
     : public TimedLoopable,
+      public TelemetryProvider,
       private ConfigAware {
 public:
     LightHandler(const Config& config)
@@ -21,8 +23,8 @@ public:
         this->onUpdate = onUpdate;
     }
 
-    float getCurrentLevel() {
-        return currentLevel;
+    void populateTelemetry(JsonDocument& json) override {
+        json["light"] = currentLevel;
     }
 
 protected:
