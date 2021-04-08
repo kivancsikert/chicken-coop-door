@@ -4,10 +4,12 @@
 #include <functional>
 
 class SwitchHandler
-    : public TimedLoopable {
+    : public TimedLoopable,
+      public TelemetryProvider {
 public:
-    SwitchHandler(int pin, std::function<bool()> invertSwitch)
-        : pin(pin)
+    SwitchHandler(const String& name, int pin, std::function<bool()> invertSwitch)
+        : name(name)
+        , pin(pin)
         , invertSwitch(invertSwitch) {
     }
 
@@ -24,11 +26,16 @@ public:
         return 100;
     }
 
+    void populateTelemetry(JsonDocument& json) override {
+        json[name] = state;
+    }
+
     bool getState() {
         return state;
     }
 
 private:
+    const String name;
     const int pin;
     const std::function<bool()> invertSwitch;
 
