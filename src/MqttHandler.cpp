@@ -75,7 +75,9 @@ String MqttHandler::getJwt() {
 }
 
 void MqttHandler::messageReceived(const String& topic, const String& payload) {
+#ifdef DUMP_MQTT
     Serial.println("Received '" + topic + "' (size: " + payload.length() + "): " + payload);
+#endif
     DynamicJsonDocument json(payload.length() * 2);
     deserializeJson(json, payload);
     if (topic.endsWith("/config")) {
@@ -98,12 +100,20 @@ void MqttHandler::publishState(const JsonDocument& json) {
     String payload;
     serializeJson(json, payload);
     mqtt->publishState(payload);
-    Serial.println("Published state");
+#ifdef DUMP_MQTT
+    Serial.print("Published state: ");
+    serializeJsonPretty(json, Serial);
+    Serial.println();
+#endif
 }
 
 void MqttHandler::publishTelemetry(const JsonDocument& json) {
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry(payload);
-    Serial.println("Published telemetry");
+#ifdef DUMP_MQTT
+    Serial.print("Published telemetry: ");
+    serializeJsonPretty(json, Serial);
+    Serial.println();
+#endif
 }
