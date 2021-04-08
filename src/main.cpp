@@ -21,6 +21,7 @@
 #include "OtaHandler.h"
 #include "PinAllocation.h"
 #include "SwitchHandler.h"
+#include "Telemetry.h"
 #include "WiFiHandler.h"
 #include "google-iot-root-cert.h"
 #include "version.h"
@@ -34,6 +35,7 @@ LightHandler light(config);
 SwitchHandler openSwitch(OPEN_PIN, []() { return config.invertOpenSwitch; });
 SwitchHandler closedSwitch(CLOSED_PIN, []() { return config.invertCloseSwitch; });
 Door door(config, mqtt, light, openSwitch, closedSwitch);
+TelemetryPublisher telemetryPublisher(config, mqtt, { &door });
 
 String fatalError(String message) {
     Serial.println(message);
@@ -134,6 +136,7 @@ void setup() {
     openSwitch.begin();
     closedSwitch.begin();
     door.begin();
+    telemetryPublisher.begin();
 }
 
 void loop() {
@@ -145,6 +148,7 @@ void loop() {
     bool moving = door.loop();
     // Preserve power by making sure we are not transmitting while the door is moving
     if (!moving) {
+        telemetryPublisher.loop();
         mqtt.loop();
     }
 }

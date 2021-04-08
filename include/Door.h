@@ -10,6 +10,7 @@
 #include "MqttHandler.h"
 #include "PinAllocation.h"
 #include "SwitchHandler.h"
+#include "Telemetry.h"
 
 enum class GateState {
     OPEN,
@@ -19,7 +20,8 @@ enum class GateState {
 };
 
 class Door
-    : ConfigAware {
+    : public TelemetryProvider,
+      ConfigAware {
 public:
     Door(const Config& config, MqttHandler& mqtt, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)
@@ -43,6 +45,7 @@ public:
     void setState(GateState state) {
         this->state = state;
     }
+    void populateTelemetry(JsonDocument& json) override;
 
 private:
     MqttHandler& mqtt;
@@ -62,11 +65,6 @@ private:
     bool emergencyStop = false;
 
     /**
-     * Updates the gate state and returns whether the motor is currently moving.
-     */
-    bool updateMotor(unsigned long currentMillis);
-
-    /**
      * Starts to move the motor towards opening or closing.
      */
     void startMoving(GateState state);
@@ -74,11 +72,7 @@ private:
     /**
      * Advances the motor in the given direction.
      */
-    void advanceMotor(unsigned long currentMillis, long steps);
-
-    void publishTelemetry(unsigned long currentMillis);
-
-    unsigned long previousStatePublishMillis = 0;
+    void advanceMotor(long steps);
 
     unsigned long movementStarted;
 };

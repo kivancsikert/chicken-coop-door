@@ -20,15 +20,6 @@ void Door::begin() {
 }
 
 bool Door::loop() {
-    unsigned long currentMillis = millis();
-    bool moving = updateMotor(currentMillis);
-    if (!moving) {
-        publishTelemetry(currentMillis);
-    }
-    return moving;
-}
-
-bool Door::updateMotor(unsigned long currentMillis) {
     bool movementExpected = !emergencyStop
         && config.motorEnabled
         && (motor.run() || state == GateState::OPENING || state == GateState::CLOSING);
@@ -45,7 +36,7 @@ bool Door::updateMotor(unsigned long currentMillis) {
             motor.stop();
             state = GateState::CLOSED;
         } else {
-            advanceMotor(currentMillis, -STEPS_AT_ONCE);
+            advanceMotor(-STEPS_AT_ONCE);
         }
     } else if (state == GateState::OPENING) {
         if (openSwitch.getState()) {
@@ -53,7 +44,7 @@ bool Door::updateMotor(unsigned long currentMillis) {
             motor.stop();
             state = GateState::OPEN;
         } else {
-            advanceMotor(currentMillis, STEPS_AT_ONCE);
+            advanceMotor(STEPS_AT_ONCE);
         }
     }
     return true;
@@ -64,25 +55,19 @@ void Door::startMoving(GateState state) {
     movementStarted = millis();
 }
 
-void Door::advanceMotor(unsigned long currentMillis, long steps) {
-    if (currentMillis - movementStarted > config.movementTimeout) {
+void Door::advanceMotor(long steps) {
+    if (millis() - movementStarted > config.movementTimeout) {
         Serial.println("Move timed out, emergency stopping");
         emergencyStop = true;
     }
     motor.move(steps);
 }
 
-void Door::publishTelemetry(unsigned long currentMillis) {
-    if (currentMillis - previousStatePublishMillis > config.statePublishingInterval) {
-        previousStatePublishMillis = currentMillis;
-
-        DynamicJsonDocument json(2048);
-        json["emergencyStop"] = emergencyStop;
-        json["light"] = light.getCurrentLevel();
-        json["gate"] = static_cast<int>(state);
-        json["openSwitch"] = openSwitch.getState();
-        json["closedSwitch"] = closedSwitch.getState();
-        json["motorPosition"] = motor.currentPosition();
-        mqtt.publishTelemetry(json);
-    }
+void Door::populateTelemetry(JsonDocument& json) {
+    json["emergencyStop"] = emergencyStop;
+    json["light"] = light.getCurrentLevel();
+    json["gate"] = static_cast<int>(state);
+    json["openSwitch"] = openSwitch.getState();
+    json["closedSwitch"] = closedSwitch.getState();
+    json["motorPosition"] = motor.currentPosition();
 }
