@@ -13,7 +13,7 @@ public:
 
 class TelemetryPublisher
     : public TimedLoopable,
-      ConfigAware {
+      private ConfigAware {
 public:
     TelemetryPublisher(const Config& config, MqttHandler& mqtt, std::list<TelemetryProvider*> providers)
         : ConfigAware(config)

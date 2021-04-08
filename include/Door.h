@@ -21,7 +21,7 @@ enum class GateState {
 
 class Door
     : public TelemetryProvider,
-      ConfigAware {
+      private ConfigAware {
 public:
     Door(const Config& config, MqttHandler& mqtt, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)

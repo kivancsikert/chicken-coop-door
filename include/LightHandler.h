@@ -9,7 +9,7 @@
 
 class LightHandler
     : public TimedLoopable,
-      ConfigAware {
+      private ConfigAware {
 public:
     LightHandler(const Config& config)
         : ConfigAware(config) {

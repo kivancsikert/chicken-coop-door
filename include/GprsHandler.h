@@ -17,7 +17,7 @@
 #include "Config.h"
 
 class GprsHandler
-    : ConfigAware {
+    : private ConfigAware {
 public:
     GprsHandler(const Config& config)
         : ConfigAware(config)
