@@ -20,17 +20,32 @@
 #include "MqttHandler.h"
 #include "OtaHandler.h"
 #include "PinAllocation.h"
+#include "SwitchHandler.h"
+#include "Telemetry.h"
 #include "WiFiHandler.h"
 #include "google-iot-root-cert.h"
 #include "version.h"
 
-OtaHandler ota;
 Config config;
+OtaHandler ota;
 WiFiHandler wifi(config);
 GprsHandler gprs(config);
-MqttHandler mqtt;
+
 LightHandler light(config);
-Door door(config, mqtt, light);
+SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
+SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
+Door door(config, light, openSwitch, closedSwitch);
+
+MqttHandler mqtt;
+CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
+TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
+
+String fatalError(String message) {
+    Serial.println(message);
+    delay(10000);
+    ESP.restart();
+    return "Should never get here";
+}
 
 Client& chooseMqttConnection() {
     if (gprs.begin(googleIoTRootCert)) {
@@ -40,9 +55,7 @@ Client& chooseMqttConnection() {
         Serial.println("GPRS not available, falling back to WIFI for MQTT");
         return wifi.getClient();
     } else {
-        Serial.println("Neither WIFI nor GPRS available, restarting");
-        delay(10000);
-        ESP.restart();
+        throw fatalError("Neither WIFI nor GPRS available, restarting");
     }
 }
 
@@ -58,7 +71,7 @@ void setup() {
     Serial.println("Starting up file system...");
 #ifdef ESP32
     if (!SPIFFS.begin()) {
-        Serial.println("Failed.");
+        throw fatalError("Could not initialize file system");
     }
 
     Serial.println("Contents:");
@@ -89,7 +102,7 @@ void setup() {
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
     DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
     if (error) {
-        Serial.printf("Failed to read IoT config file (%s)\n", error.c_str());
+        throw fatalError("Failed to read IoT config file: " + String(error.c_str()));
     }
     Client& client = chooseMqttConnection();
     mqtt.begin(
@@ -118,21 +131,32 @@ void setup() {
             }
         });
 
-    DynamicJsonDocument stateJson(2048);
-    stateJson["version"] = VERSION;
-    mqtt.publishState(stateJson);
-
     light.begin(LIGHT_SDA, LIGHT_SCL);
-    door.begin();
+    openSwitch.begin();
+    closedSwitch.begin();
+    door.begin([](std::function<void(JsonObject&)> populateEvent) {
+        DynamicJsonDocument doc(2048);
+        JsonObject root = doc.to<JsonObject>();
+        root["version"] = VERSION;
+        JsonObject event = root.createNestedObject("event");
+        populateEvent(event);
+        JsonObject telemetry = root.createNestedObject("telemetry");
+        telemetryProvider.populateTelemetry(telemetry);
+        mqtt.publishState(doc);
+    });
+    telemetryPublisher.begin();
 }
 
 void loop() {
     // It's okay to loop OTA unconditionally, it will ignore the call if not initialized
     ota.loop();
     light.loop();
+    openSwitch.loop();
+    closedSwitch.loop();
     bool moving = door.loop();
     // Preserve power by making sure we are not transmitting while the door is moving
     if (!moving) {
+        telemetryPublisher.loop();
         mqtt.loop();
     }
 }

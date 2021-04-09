@@ -98,10 +98,10 @@ public:
 
 class ConfigAware {
 public:
-    ConfigAware(Config& config)
+    ConfigAware(const Config& config)
         : config(config) {
     }
 
 protected:
-    Config& config;
+    const Config& config;
 };

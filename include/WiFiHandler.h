@@ -4,9 +4,9 @@
 #include "WiFi.h"
 
 class WiFiHandler
-    : ConfigAware {
+    : private ConfigAware {
 public:
-    WiFiHandler(Config& config)
+    WiFiHandler(const Config& config)
         : ConfigAware(config) {
     }
 

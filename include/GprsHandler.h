@@ -17,9 +17,9 @@
 #include "Config.h"
 
 class GprsHandler
-    : ConfigAware {
+    : private ConfigAware {
 public:
-    GprsHandler(Config& config)
+    GprsHandler(const Config& config)
         : ConfigAware(config)
 #ifdef DUMP_AT_COMMANDS
         , debugger(StreamDebugger(SerialAT, Serial))

@@ -4,11 +4,13 @@
 #include <ArduinoJson.h>
 #include <BH1750.h>
 #include <Wire.h>
+#include <functional>
 
 #include "Config.h"
 #include "LightHandler.h"
-#include "MqttHandler.h"
 #include "PinAllocation.h"
+#include "SwitchHandler.h"
+#include "Telemetry.h"
 
 enum class GateState {
     OPEN,
@@ -18,16 +20,18 @@ enum class GateState {
 };
 
 class Door
-    : ConfigAware {
+    : public TelemetryProvider,
+      private ConfigAware {
 public:
-    Door(Config& config, MqttHandler& mqtt, LightHandler& light)
+    Door(const Config& config, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)
-        , mqtt(mqtt)
         , light(light)
+        , openSwitch(openSwitch)
+        , closedSwitch(closedSwitch)
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
     }
 
-    void begin();
+    void begin(std::function<void(std::function<void(JsonObject&)>)> onEvent);
 
     /**
      * Loops the door, and returns whether the door is currently moving.
@@ -39,12 +43,21 @@ public:
     }
     void setState(GateState state) {
         this->state = state;
+        onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
+    }
+    void populateTelemetry(JsonObject& json) override {
+        json["emergencyStop"] = emergencyStop;
+        json["gate"] = static_cast<int>(state);
+        json["motorPosition"] = motor.currentPosition();
     }
 
 private:
-    MqttHandler& mqtt;
     LightHandler& light;
+    SwitchHandler& openSwitch;
+    SwitchHandler& closedSwitch;
     AccelStepper motor;
+
+    std::function<void(std::function<void(JsonObject&)>)> onEvent;
 
     /**
      * The state of the gate.
@@ -57,33 +70,25 @@ private:
     bool emergencyStop = false;
 
     /**
-     * Whether the "gate open" switch is engaged or not.
-     */
-    bool openSwitch = false;
-
-    /**
-     * Whether the "gate closed" switch is engaged or not.
-     */
-    bool closedSwitch = false;
-
-    /**
-     * Updates the gate state and returns whether the motor is currently moving.
-     */
-    bool updateMotor(unsigned long currentMillis);
-
-    /**
      * Starts to move the motor towards opening or closing.
      */
-    void startMoving(GateState state);
+    void startMoving(GateState state) {
+        movementStarted = millis();
+        setState(state);
+    }
+
+    /**
+     * Finishes moving in the given state.
+     */
+    void stopMoving(GateState state) {
+        motor.stop();
+        setState(state);
+    }
 
     /**
      * Advances the motor in the given direction.
      */
-    void advanceMotor(unsigned long currentMillis, long steps);
-
-    void publishTelemetry(unsigned long currentMillis);
-
-    unsigned long previousStatePublishMillis = 0;
+    void advanceMotor(long steps);
 
     unsigned long movementStarted;
 };

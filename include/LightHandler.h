@@ -2,16 +2,19 @@
 
 #include "Config.h"
 #include "Loopable.h"
+#include "Telemetry.h"
 #include <BH1750.h>
 #include <Wire.h>
-#include <functional>
 #include <deque>
+#include <functional>
 
 class LightHandler
-    : public TimedLoopable {
+    : public TimedLoopable,
+      public TelemetryProvider,
+      private ConfigAware {
 public:
-    LightHandler(Config& config)
-        : config(config) {
+    LightHandler(const Config& config)
+        : ConfigAware(config) {
     }
 
     void begin(int sda, int scl);
@@ -20,8 +23,8 @@ public:
         this->onUpdate = onUpdate;
     }
 
-    float getCurrentLevel() {
-        return currentLevel;
+    void populateTelemetry(JsonObject& json) override {
+        json["light"] = currentLevel;
     }
 
 protected:
@@ -31,7 +34,6 @@ protected:
     void timedLoop() override;
 
 private:
-    Config& config;
     BH1750 sensor;
 
     std::deque<float> measurements;
