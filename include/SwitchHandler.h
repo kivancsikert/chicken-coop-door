@@ -26,7 +26,7 @@ public:
         return 100;
     }
 
-    void populateTelemetry(JsonDocument& json) override {
+    void populateTelemetry(JsonObject& json) override {
         json[name] = state;
     }
 

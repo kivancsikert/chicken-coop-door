@@ -130,14 +130,18 @@ void setup() {
             }
         });
 
-    DynamicJsonDocument stateJson(2048);
-    stateJson["version"] = VERSION;
-    mqtt.publishState(stateJson);
-
     light.begin(LIGHT_SDA, LIGHT_SCL);
     openSwitch.begin();
     closedSwitch.begin();
-    door.begin();
+    door.begin([](std::function<void(JsonObject&)> populateEvent) {
+        DynamicJsonDocument doc(2048);
+        JsonObject root = doc.to<JsonObject>();
+        root["version"] = VERSION;
+        JsonObject event =  root.createNestedObject("event");
+        populateEvent(event);
+        door.populateState(root);
+        mqtt.publishState(doc);
+    });
     telemetryPublisher.begin();
 }
 

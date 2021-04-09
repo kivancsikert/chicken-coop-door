@@ -2,7 +2,9 @@
 
 #define STEPS_AT_ONCE 100
 
-void Door::begin() {
+void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
+    this->onEvent = onEvent;
+
     motor.setMaxSpeed(500);
     motor.setSpeed(500);
     motor.setAcceleration(500);
@@ -17,6 +19,9 @@ void Door::begin() {
             startMoving(GateState::OPENING);
         }
     });
+
+    // Publish initial state
+    onEvent([](JsonObject& json) { json["init"] = true; });
 }
 
 bool Door::loop() {
@@ -33,16 +38,14 @@ bool Door::loop() {
     if (state == GateState::CLOSING) {
         if (closedSwitch.getState()) {
             Serial.println("Closed");
-            motor.stop();
-            state = GateState::CLOSED;
+            stopMoving(GateState::CLOSED);
         } else {
             advanceMotor(-STEPS_AT_ONCE);
         }
     } else if (state == GateState::OPENING) {
         if (openSwitch.getState()) {
             Serial.println("Open");
-            motor.stop();
-            state = GateState::OPEN;
+            stopMoving(GateState::OPEN);
         } else {
             advanceMotor(STEPS_AT_ONCE);
         }
@@ -50,21 +53,14 @@ bool Door::loop() {
     return true;
 }
 
-void Door::startMoving(GateState state) {
-    this->state = state;
-    movementStarted = millis();
-}
-
 void Door::advanceMotor(long steps) {
     if (millis() - movementStarted > config.movementTimeout) {
         Serial.println("Move timed out, emergency stopping");
         emergencyStop = true;
+        motor.stop();
+        motor.disableOutputs();
+        onEvent([](JsonObject& json) { json["emergencyStop"] = true; });
+        return;
     }
     motor.move(steps);
-}
-
-void Door::populateTelemetry(JsonDocument& json) {
-    json["emergencyStop"] = emergencyStop;
-    json["gate"] = static_cast<int>(state);
-    json["motorPosition"] = motor.currentPosition();
 }

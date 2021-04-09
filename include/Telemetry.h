@@ -8,7 +8,7 @@
 
 class TelemetryProvider {
 public:
-    virtual void populateTelemetry(JsonDocument& json) = 0;
+    virtual void populateTelemetry(JsonObject& json) = 0;
 };
 
 class TelemetryPublisher
@@ -31,11 +31,12 @@ protected:
     }
 
     void timedLoop() override {
-        DynamicJsonDocument json(2048);
+        DynamicJsonDocument doc(2048);
+        JsonObject root = doc.to<JsonObject>();
         for (auto& provider : providers) {
-            provider->populateTelemetry(json);
+            provider->populateTelemetry(root);
         }
-        mqtt.publishTelemetry(json);
+        mqtt.publishTelemetry(doc);
     }
 
 private:

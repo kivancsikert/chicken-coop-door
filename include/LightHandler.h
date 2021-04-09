@@ -23,7 +23,7 @@ public:
         this->onUpdate = onUpdate;
     }
 
-    void populateTelemetry(JsonDocument& json) override {
+    void populateTelemetry(JsonObject& json) override {
         json["light"] = currentLevel;
     }
 

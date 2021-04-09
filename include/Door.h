@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include <BH1750.h>
 #include <Wire.h>
+#include <functional>
 
 #include "Config.h"
 #include "LightHandler.h"
@@ -30,7 +31,7 @@ public:
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
     }
 
-    void begin();
+    void begin(std::function<void(std::function<void(JsonObject&)>)> onStateChange);
 
     /**
      * Loops the door, and returns whether the door is currently moving.
@@ -42,14 +43,24 @@ public:
     }
     void setState(GateState state) {
         this->state = state;
+        onStateChange([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
     }
-    void populateTelemetry(JsonDocument& json) override;
+    void populateTelemetry(JsonObject& json) override {
+        populateState(json);
+        json["motorPosition"] = motor.currentPosition();
+    }
+    void populateState(JsonObject& json) {
+        json["emergencyStop"] = emergencyStop;
+        json["gate"] = static_cast<int>(state);
+    }
 
 private:
     LightHandler& light;
     SwitchHandler& openSwitch;
     SwitchHandler& closedSwitch;
     AccelStepper motor;
+
+    std::function<void(std::function<void(JsonObject&)>)> onStateChange;
 
     /**
      * The state of the gate.
@@ -64,7 +75,18 @@ private:
     /**
      * Starts to move the motor towards opening or closing.
      */
-    void startMoving(GateState state);
+    void startMoving(GateState state) {
+        movementStarted = millis();
+        setState(state);
+    }
+
+    /**
+     * Finishes moving in the given state.
+     */
+    void stopMoving(GateState state) {
+        motor.stop();
+        setState(state);
+    }
 
     /**
      * Advances the motor in the given direction.
