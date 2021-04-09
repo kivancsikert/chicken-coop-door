@@ -37,7 +37,8 @@ SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.inve
 Door door(config, light, openSwitch, closedSwitch);
 
 MqttHandler mqtt;
-TelemetryPublisher telemetryPublisher(config, mqtt, { &light, &openSwitch, &closedSwitch, &door });
+CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
+TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
 
 String fatalError(String message) {
     Serial.println(message);
@@ -137,9 +138,10 @@ void setup() {
         DynamicJsonDocument doc(2048);
         JsonObject root = doc.to<JsonObject>();
         root["version"] = VERSION;
-        JsonObject event =  root.createNestedObject("event");
+        JsonObject event = root.createNestedObject("event");
         populateEvent(event);
-        door.populateState(root);
+        JsonObject telemetry = root.createNestedObject("telemetry");
+        telemetryProvider.populateTelemetry(telemetry);
         mqtt.publishState(doc);
     });
     telemetryPublisher.begin();

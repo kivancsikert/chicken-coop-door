@@ -11,14 +11,30 @@ public:
     virtual void populateTelemetry(JsonObject& json) = 0;
 };
 
+class CompositeTelemetryProvider : public TelemetryProvider {
+public:
+    CompositeTelemetryProvider(std::list<TelemetryProvider*> delegates)
+        : delegates(delegates) {
+    }
+
+    void populateTelemetry(JsonObject& json) override {
+        for (auto& delegate : delegates) {
+            delegate->populateTelemetry(json);
+        }
+    }
+
+private:
+    std::list<TelemetryProvider*> delegates;
+};
+
 class TelemetryPublisher
     : public TimedLoopable,
       private ConfigAware {
 public:
-    TelemetryPublisher(const Config& config, MqttHandler& mqtt, std::list<TelemetryProvider*> providers)
+    TelemetryPublisher(const Config& config, MqttHandler& mqtt, TelemetryProvider& telemetryProvider)
         : ConfigAware(config)
         , mqtt(mqtt)
-        , providers(providers) {
+        , telemetryProvider(telemetryProvider) {
     }
 
     void begin() {
@@ -33,13 +49,11 @@ protected:
     void timedLoop() override {
         DynamicJsonDocument doc(2048);
         JsonObject root = doc.to<JsonObject>();
-        for (auto& provider : providers) {
-            provider->populateTelemetry(root);
-        }
+        telemetryProvider.populateTelemetry(root);
         mqtt.publishTelemetry(doc);
     }
 
 private:
     MqttHandler& mqtt;
-    std::list<TelemetryProvider*> providers;
+    TelemetryProvider& telemetryProvider;
 };

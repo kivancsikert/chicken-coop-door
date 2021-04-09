@@ -31,7 +31,7 @@ public:
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
     }
 
-    void begin(std::function<void(std::function<void(JsonObject&)>)> onStateChange);
+    void begin(std::function<void(std::function<void(JsonObject&)>)> onEvent);
 
     /**
      * Loops the door, and returns whether the door is currently moving.
@@ -43,15 +43,12 @@ public:
     }
     void setState(GateState state) {
         this->state = state;
-        onStateChange([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
+        onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
     }
     void populateTelemetry(JsonObject& json) override {
-        populateState(json);
-        json["motorPosition"] = motor.currentPosition();
-    }
-    void populateState(JsonObject& json) {
         json["emergencyStop"] = emergencyStop;
         json["gate"] = static_cast<int>(state);
+        json["motorPosition"] = motor.currentPosition();
     }
 
 private:
@@ -60,7 +57,7 @@ private:
     SwitchHandler& closedSwitch;
     AccelStepper motor;
 
-    std::function<void(std::function<void(JsonObject&)>)> onStateChange;
+    std::function<void(std::function<void(JsonObject&)>)> onEvent;
 
     /**
      * The state of the gate.
