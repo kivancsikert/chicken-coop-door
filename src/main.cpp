@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
 
-#include "DebugClient.h"
 #include "Door.h"
 #include "LightHandler.h"
 #include "MqttHandler.h"
