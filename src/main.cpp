@@ -16,7 +16,6 @@
 #include "LightHandler.h"
 #include "MqttHandler.h"
 #include "OtaHandler.h"
-#include "PinAllocation.h"
 #include "SwitchHandler.h"
 #include "Telemetry.h"
 #include "WiFiHandler.h"

@@ -2,6 +2,8 @@
 
 #ifdef ESP32
 
+#include "pins_arduino_ttgo_call.h"
+
 #define MOTOR_PIN1 GPIO_NUM_23
 #define MOTOR_PIN2 GPIO_NUM_19
 #define MOTOR_PIN3 GPIO_NUM_18
