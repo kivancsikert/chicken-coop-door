@@ -1,5 +1,5 @@
 #include "Config.h"
-#include <SPIFFS.h>
+
 #include <limits>
 
 #define CONFIG_FILE "/config.json"
@@ -14,8 +14,8 @@ T getJsonValue(const JsonDocument& json, const String& key, T defaultValue) {
 }
 
 void Config::begin() {
-    if (SPIFFS.exists(CONFIG_FILE)) {
-        File configFile = SPIFFS.open(CONFIG_FILE, FILE_READ);
+    if (fileSystem.getFS().exists(CONFIG_FILE)) {
+        File configFile = fileSystem.getFS().open(CONFIG_FILE, FILE_READ);
         DynamicJsonDocument configJson(configFile.size() * 2);
         deserializeJson(configJson, configFile);
         configFile.close();
@@ -60,7 +60,7 @@ void Config::store() {
 
     json["statePublishingInterval"] = statePublishingInterval;
 
-    File configFile = SPIFFS.open(CONFIG_FILE, FILE_WRITE);
+    File configFile = fileSystem.getFS().open(CONFIG_FILE, FILE_WRITE);
     serializeJson(json, configFile);
     configFile.close();
 }

@@ -1,5 +1,9 @@
 #include "WiFiHandler.h"
 
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#endif
+
 void WiFiHandler::begin(const String& hostname, const String& caCert) {
     bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {
@@ -20,12 +24,21 @@ void WiFiHandler::begin(const String& hostname, const String& caCert) {
         ESP.restart();
     }
 
-    WiFi.setHostname(hostname.c_str());
-    client.setCACert(caCert.c_str());
     Serial.print(" connected, IP address: ");
     Serial.print(WiFi.localIP());
     Serial.print(", hostname: ");
+#if defined(ESP32)
+    WiFi.setHostname(hostname.c_str());
     Serial.println(WiFi.getHostname());
+
+    client.setCACert(caCert.c_str());
+#elif defined(ESP8266)
+    WiFi.hostname(hostname);
+    Serial.println(WiFi.hostname());
+
+    // TODO Replace this with a non-deprecated variant
+    client.setCACert((const uint8_t*) caCert.c_str(), caCert.length());
+#endif
 }
 
 void WiFiHandler::startWifi() {

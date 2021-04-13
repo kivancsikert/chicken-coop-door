@@ -12,7 +12,7 @@ void LightHandler::begin(int sda, int scl) {
 void LightHandler::timedLoop() {
     currentLevel = sensor.readLightLevel();
 
-    int maxMaxmeasurements = config.lightLatencyInterval / config.lightUpdateInterval;
+    size_t maxMaxmeasurements = config.lightLatencyInterval / config.lightUpdateInterval;
     while (measurements.size() >= maxMaxmeasurements) {
         sum -= measurements.front();
         measurements.pop_front();

@@ -2,8 +2,14 @@
 
 #include <ArduinoJson.h>
 
+#include "FileSystemHandler.h"
+
 class Config {
 public:
+    Config(FileSystemHandler& fileSystem)
+        : fileSystem(fileSystem) {
+    }
+
     void begin();
     void update(const JsonDocument& json);
     void store();
@@ -63,6 +69,9 @@ public:
      * Number of milliseconds between publishing state.
      */
     unsigned long statePublishingInterval;
+
+private:
+    FileSystemHandler& fileSystem;
 };
 
 class ConfigAware {
