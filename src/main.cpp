@@ -133,10 +133,7 @@ void loop() {
     light.loop();
     openSwitch.loop();
     closedSwitch.loop();
-    bool moving = door.loop();
-    // Preserve power by making sure we are not transmitting while the door is moving
-    if (!moving) {
-        telemetryPublisher.loop();
-        mqtt.loop();
-    }
+    door.loop();
+    telemetryPublisher.loop();
+    mqtt.loop();
 }
