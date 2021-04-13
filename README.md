@@ -1,6 +1,6 @@
 # Chicken Coop Door
 
-https://github.com/kivancsikert/chicken-coop-door/actions/workflows/build.yml/badge.svg
+![Build badge](https://github.com/kivancsikert/chicken-coop-door/actions/workflows/build.yml/badge.svg)
 
 ## Dashboard
 
