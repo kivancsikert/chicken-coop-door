@@ -40,8 +40,8 @@ private:
     String deviceId;
     String privateKey;
 
-    CloudIoTCoreMqtt* mqtt;
     MQTTClient* mqttClient;
+    CloudIoTCoreMqtt* mqtt;
     CloudIoTCoreDevice* device;
 
     std::function<void(JsonDocument&)> onConfigChange;
