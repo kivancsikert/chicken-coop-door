@@ -1,15 +1,8 @@
-#ifdef ESP32
 #include "pins_arduino_ttgo_call.h"
 
-#include <SPIFFS.h>
-#elif defined(ESP8266)
-#define SPIFFS LittleFS
-#include <LittleFS.h>
-#endif
-
 #include <Arduino.h>
-
 #include <ArduinoJson.h>
+#include <SPIFFS.h>
 
 #include "DebugClient.h"
 #include "Door.h"
@@ -19,6 +12,7 @@
 #include "SwitchHandler.h"
 #include "Telemetry.h"
 #include "WiFiHandler.h"
+
 #include "google-iot-root-cert.h"
 #include "version.h"
 
@@ -52,7 +46,6 @@ void setup() {
     }
 
     Serial.println("Starting up file system...");
-#ifdef ESP32
     if (!SPIFFS.begin()) {
         throw fatalError("Could not initialize file system");
     }
@@ -67,12 +60,6 @@ void setup() {
         Serial.print(" - ");
         Serial.println(file.name());
     }
-#elif defined(ESP8266)
-    LittleFSConfig cfg;
-    cfg.setAutoFormat(true);
-    LittleFS.setConfig(cfg);
-    LittleFS.begin();
-#endif
 
     config.begin();
 
