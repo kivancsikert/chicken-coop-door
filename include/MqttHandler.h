@@ -5,7 +5,6 @@
 #include <CloudIoTCore.h>
 #include <CloudIoTCoreMqtt.h>
 #include <MQTT.h>
-#include <SSLClient.h>
 #include <functional>
 
 #include "DebugClient.h"
@@ -43,7 +42,6 @@ private:
     String deviceId;
     String privateKey;
 
-    SSLClient* sslClient;
     CloudIoTCoreMqtt* mqtt;
     MQTTClient* mqttClient;
     CloudIoTCoreDevice* device;

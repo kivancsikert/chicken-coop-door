@@ -1,13 +1,6 @@
 #include "MqttHandler.h"
 #include <SPIFFS.h>
 
-#include <SSLClient.h>
-#ifdef USE_GOOGLE_LTS_DOMAIN
-#include "google-iot-root-cert-ta-lts.h"
-#else
-#include "google-iot-root-cert-ta-non-lts.h"
-#endif
-
 MqttHandler* instance;
 
 MqttHandler::MqttHandler() {
@@ -56,8 +49,7 @@ void MqttHandler::begin(Client& netClient,
         true,    // cleanSession
         10000    // timeout
     );
-    sslClient = new SSLClient(netClient, TAs, (size_t) TAs_NUM, A0);
-    mqtt = new CloudIoTCoreMqtt(mqttClient, sslClient, device);
+    mqtt = new CloudIoTCoreMqtt(mqttClient, &netClient, device);
     mqtt->setLogConnect(false);
 #ifdef USE_GOOGLE_LTS_DOMAIN
     mqtt->setUseLts(true);
