@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef ESP32
+#if defined(ESP32)
 
 #include "pins_arduino_ttgo_call.h"
 
@@ -26,6 +26,6 @@
 #define MOTOR_PIN4 D3
 
 #define LIGHT_SDA D7
-#define LIGHT_SDC D4
+#define LIGHT_SCL D4
 
 #endif

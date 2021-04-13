@@ -1,21 +1,23 @@
+#ifdef ESP32
 #include "pins_arduino_ttgo_call.h"
+#endif
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <SPIFFS.h>
 
 #include "Door.h"
+#include "FileSystemHandler.h"
 #include "LightHandler.h"
 #include "MqttHandler.h"
 #include "OtaHandler.h"
 #include "SwitchHandler.h"
 #include "Telemetry.h"
 #include "WiFiHandler.h"
-
 #include "google-iot-root-cert.h"
 #include "version.h"
 
-Config config;
+FileSystemHandler fileSystem;
+Config config(fileSystem);
 OtaHandler ota;
 WiFiHandler wifi(config);
 
@@ -28,11 +30,10 @@ MqttHandler mqtt;
 CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
 TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
 
-String fatalError(String message) {
+void fatalError(String message) {
     Serial.println(message);
     delay(10000);
     ESP.restart();
-    return "Should never get here";
 }
 
 void setup() {
@@ -45,19 +46,9 @@ void setup() {
     }
 
     Serial.println("Starting up file system...");
-    if (!SPIFFS.begin()) {
-        throw fatalError("Could not initialize file system");
-    }
-
-    Serial.println("Contents:");
-    File root = SPIFFS.open("/");
-    while (true) {
-        File file = root.openNextFile();
-        if (!file) {
-            break;
-        }
-        Serial.print(" - ");
-        Serial.println(file.name());
+    if (!fileSystem.begin()) {
+        fatalError("Could not initialize file system");
+        return;
     }
 
     config.begin();
@@ -65,11 +56,12 @@ void setup() {
     wifi.begin("chickens", googleIoTRootCert);
     ota.begin("chickens");
 
-    File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
+    File iotConfigFile = fileSystem.getFS().open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
     DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
     if (error) {
-        throw fatalError("Failed to read IoT config file: " + String(error.c_str()));
+        fatalError("Failed to read IoT config file: " + String(error.c_str()));
+        return;
     }
     mqtt.begin(
         wifi.getClient(),

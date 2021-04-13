@@ -8,7 +8,7 @@
 // Copy the certificate (all lines between and including ---BEGIN CERTIFICATE---
 // and --END CERTIFICATE--) to root.cert and put here on the root_cert variable.
 
-const String googleIoTRootCert = F("-----BEGIN CERTIFICATE-----\n"
+const String googleIoTRootCert = "-----BEGIN CERTIFICATE-----\n"
 #ifdef USE_GOOGLE_LTS_DOMAIN
                                    "MIIBxTCCAWugAwIBAgINAfD3nVndblD3QnNxUDAKBggqhkjOPQQDAjBEMQswCQYD\n"
                                    "VQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzERMA8G\n"
@@ -45,4 +45,4 @@ const String googleIoTRootCert = F("-----BEGIN CERTIFICATE-----\n"
                                    "IRdAvKLWZu/axBVbzYmqmwkm5zLSDW5nIAJbELCQCZwMH56t2Dvqofxs6BBcCFIZ\n"
                                    "USpxu6x6td0V7SvJCCosirSmIatj/9dSSVDQibet8q/7UK4v4ZUN80atnZz1yg==\n"
 #endif
-                                   "-----END CERTIFICATE-----\n");
+                                   "-----END CERTIFICATE-----\n";
