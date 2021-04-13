@@ -1,7 +1,7 @@
 #include "WiFiHandler.h"
 
 void WiFiHandler::begin(const String& hostname, const String& caCert) {
-    bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
+    bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {
         Serial.println("WIFI mode unsuccessful");
     }
@@ -20,12 +20,12 @@ void WiFiHandler::begin(const String& hostname, const String& caCert) {
         ESP.restart();
     }
 
-    WiFi.softAPsetHostname(hostname.c_str());
+    WiFi.setHostname(hostname.c_str());
     client.setCACert(caCert.c_str());
     Serial.print(" connected, IP address: ");
     Serial.print(WiFi.localIP());
     Serial.print(", hostname: ");
-    Serial.println(WiFi.softAPgetHostname());
+    Serial.println(WiFi.getHostname());
 }
 
 void WiFiHandler::startWifi() {
