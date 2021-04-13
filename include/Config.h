@@ -50,11 +50,6 @@ public:
     bool invertCloseSwitch;
 
     /**
-     * Whether connecting WIFI is enabled.
-     */
-    bool wifiEnabled;
-
-    /**
      * WIFI SSID to connect to.
      */
     String wifiSsid;
@@ -63,32 +58,6 @@ public:
      * WIFI SSID to connect to.
      */
     String wifiPassword;
-
-    /**
-     * Whether to enable GPRS (when it's configured).
-     * If not enabled, will prefer WIFI connection.
-     */
-    bool gprsEnabled;
-
-    /**
-     * SIM PIN code.
-     */
-    String simPin;
-
-    /**
-     * GPRS APN.
-     */
-    String gprsApn;
-
-    /**
-     * GPRS username.
-     */
-    String gprsUsername;
-
-    /**
-     * GPRS password.
-     */
-    String gprsPassword;
 
     /**
      * Number of milliseconds between publishing state.

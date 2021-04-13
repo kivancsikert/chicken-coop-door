@@ -1,35 +1,23 @@
-#ifdef ESP32
 #include "pins_arduino_ttgo_call.h"
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
-
-#include <SPIFFS.h>
-#elif defined(ESP8266)
-#define SPIFFS LittleFS
-#include <LittleFS.h>
-#endif
 
 #include <Arduino.h>
-
 #include <ArduinoJson.h>
+#include <SPIFFS.h>
 
-#include "DebugClient.h"
 #include "Door.h"
-#include "GprsHandler.h"
 #include "LightHandler.h"
 #include "MqttHandler.h"
 #include "OtaHandler.h"
-#include "PinAllocation.h"
 #include "SwitchHandler.h"
 #include "Telemetry.h"
 #include "WiFiHandler.h"
+
 #include "google-iot-root-cert.h"
 #include "version.h"
 
 Config config;
 OtaHandler ota;
 WiFiHandler wifi(config);
-GprsHandler gprs(config);
 
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
@@ -47,18 +35,6 @@ String fatalError(String message) {
     return "Should never get here";
 }
 
-Client& chooseMqttConnection() {
-    if (gprs.begin(googleIoTRootCert)) {
-        Serial.println("GPRS available, using it for MQTT");
-        return gprs.getClient();
-    } else if (config.wifiEnabled) {
-        Serial.println("GPRS not available, falling back to WIFI for MQTT");
-        return wifi.getClient();
-    } else {
-        throw fatalError("Neither WIFI nor GPRS available, restarting");
-    }
-}
-
 void setup() {
     Serial.begin(115200);
 
@@ -69,7 +45,6 @@ void setup() {
     }
 
     Serial.println("Starting up file system...");
-#ifdef ESP32
     if (!SPIFFS.begin()) {
         throw fatalError("Could not initialize file system");
     }
@@ -84,19 +59,11 @@ void setup() {
         Serial.print(" - ");
         Serial.println(file.name());
     }
-#elif defined(ESP8266)
-    LittleFSConfig cfg;
-    cfg.setAutoFormat(true);
-    LittleFS.setConfig(cfg);
-    LittleFS.begin();
-#endif
 
     config.begin();
 
-    if (config.wifiEnabled) {
-        wifi.begin("chickens");
-        ota.begin("chickens");
-    }
+    wifi.begin("chickens", googleIoTRootCert);
+    ota.begin("chickens");
 
     File iotConfigFile = SPIFFS.open("/iot-config.json", FILE_READ);
     DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
@@ -104,9 +71,8 @@ void setup() {
     if (error) {
         throw fatalError("Failed to read IoT config file: " + String(error.c_str()));
     }
-    Client& client = chooseMqttConnection();
     mqtt.begin(
-        client,
+        wifi.getClient(),
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
@@ -148,15 +114,11 @@ void setup() {
 }
 
 void loop() {
-    // It's okay to loop OTA unconditionally, it will ignore the call if not initialized
     ota.loop();
     light.loop();
     openSwitch.loop();
     closedSwitch.loop();
-    bool moving = door.loop();
-    // Preserve power by making sure we are not transmitting while the door is moving
-    if (!moving) {
-        telemetryPublisher.loop();
-        mqtt.loop();
-    }
+    door.loop();
+    telemetryPublisher.loop();
+    mqtt.loop();
 }

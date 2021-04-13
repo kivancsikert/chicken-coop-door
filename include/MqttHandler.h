@@ -5,10 +5,7 @@
 #include <CloudIoTCore.h>
 #include <CloudIoTCoreMqtt.h>
 #include <MQTT.h>
-#include <SSLClient.h>
 #include <functional>
-
-#include "DebugClient.h"
 
 #define MQTT_BUFFER_SIZE 2048
 
@@ -43,9 +40,8 @@ private:
     String deviceId;
     String privateKey;
 
-    SSLClient* sslClient;
-    CloudIoTCoreMqtt* mqtt;
     MQTTClient* mqttClient;
+    CloudIoTCoreMqtt* mqtt;
     CloudIoTCoreDevice* device;
 
     std::function<void(JsonDocument&)> onConfigChange;
