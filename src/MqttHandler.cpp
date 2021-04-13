@@ -1,5 +1,4 @@
 #include "MqttHandler.h"
-#include <SPIFFS.h>
 
 MqttHandler* instance;
 
