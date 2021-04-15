@@ -28,7 +28,7 @@ void Config::begin() {
 
 void Config::update(const JsonDocument& json) {
     openLightLimit = getJsonValue(json, "openLightLimit", std::numeric_limits<float>::min());
-    closeLightLimit = getJsonValue(json, "openLightLimit", std::numeric_limits<float>::max());
+    closeLightLimit = getJsonValue(json, "closeLightLimit", std::numeric_limits<float>::max());
     lightUpdateInterval = getJsonValue(json, "lightUpdateInterval", 1000);
     lightLatencyInterval = getJsonValue(json, "lightLatencyInterval", 5000);
 
