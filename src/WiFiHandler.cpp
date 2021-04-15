@@ -4,7 +4,7 @@
 #include <ESP8266WiFi.h>
 #endif
 
-void WiFiHandler::begin(const String& hostname, const String& caCert) {
+void WiFiHandler::begin(const String& hostname) {
     bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
     if (!wifiModeSuccessful) {
         Serial.println("WIFI mode unsuccessful");
@@ -37,7 +37,8 @@ void WiFiHandler::begin(const String& hostname, const String& caCert) {
     Serial.println(WiFi.hostname());
 
     // TODO Replace this with a non-deprecated variant
-    client.setCACert((const uint8_t*) caCert.c_str(), caCert.length());
+    // client.setCACert((const uint8_t*) caCert.c_str(), caCert.length() + 1);
+    client.setTrustAnchors(caCert);
 #endif
 }
 

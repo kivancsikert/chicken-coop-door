@@ -19,7 +19,7 @@
 FileSystemHandler fileSystem;
 Config config(fileSystem);
 OtaHandler ota;
-WiFiHandler wifi(config);
+WiFiHandler wifi(config, googleIoTRootCert);
 
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
@@ -53,7 +53,7 @@ void setup() {
 
     config.begin();
 
-    wifi.begin("chickens", googleIoTRootCert);
+    wifi.begin("chickens");
     ota.begin("chickens");
 
     File iotConfigFile = fileSystem.getFS().open("/iot-config.json", FILE_READ);
