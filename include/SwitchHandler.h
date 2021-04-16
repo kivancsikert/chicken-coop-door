@@ -11,13 +11,18 @@ public:
         : name(name)
         , pin(pin)
         , invertSwitch(invertSwitch) {
-    }
-
-    void begin() {
         pinMode(pin, INPUT_PULLUP);
     }
 
+    void begin() {
+        update();
+    }
+
     virtual void timedLoop() override {
+        update();
+    }
+
+    void update() {
         state = digitalRead(pin) ^ invertSwitch();
     }
 

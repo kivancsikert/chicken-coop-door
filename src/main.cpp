@@ -24,7 +24,7 @@ WiFiHandler wifi(config);
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
 SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
-Door door(config, light, openSwitch, closedSwitch);
+Door door(config, openSwitch, closedSwitch);
 
 MqttHandler mqtt;
 CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
@@ -101,6 +101,9 @@ void setup() {
         JsonObject telemetry = root.createNestedObject("telemetry");
         telemetryProvider.populateTelemetry(telemetry);
         mqtt.publishState(doc);
+    });
+    light.setOnUpdate([](float light) {
+        door.lightChanged(light);
     });
     telemetryPublisher.begin();
 }

@@ -10,18 +10,34 @@ void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) 
     motor.setAcceleration(500);
     Serial.println("Motor configured");
 
-    light.setOnUpdate([this](float currentLight) {
-        if (currentLight < config.closeLightLimit && state != GateState::CLOSED && state != GateState::CLOSING) {
-            Serial.println("Closing...");
-            startMoving(GateState::CLOSING);
-        } else if (currentLight > config.openLightLimit && state != GateState::OPEN && state != GateState::OPENING) {
-            Serial.println("Opening...");
-            startMoving(GateState::OPENING);
-        }
-    });
+    // Set initial state
+    String message;
+    if (openSwitch.getState()) {
+        message = "Door initialized in open state";
+        state = GateState::OPEN;
+    } else if (closedSwitch.getState()) {
+        message = "Door initialized in closed state";
+        state = GateState::CLOSED;
+    } else {
+        message = "Door initialized; switches not engaged, closing";
+        state = GateState::CLOSING;
+    }
 
     // Publish initial state
-    onEvent([](JsonObject& json) { json["init"] = true; });
+    onEvent([message](JsonObject& json) {
+        json["init"] = true;
+        json["message"] = message;
+    });
+}
+
+void Door::lightChanged(float light) {
+    if (light < config.closeLightLimit && state != GateState::CLOSED && state != GateState::CLOSING) {
+        Serial.println("Closing...");
+        startMoving(GateState::CLOSING);
+    } else if (light > config.openLightLimit && state != GateState::OPEN && state != GateState::OPENING) {
+        Serial.println("Opening...");
+        startMoving(GateState::OPENING);
+    }
 }
 
 bool Door::loop() {
