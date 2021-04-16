@@ -23,9 +23,8 @@ class Door
     : public TelemetryProvider,
       private ConfigAware {
 public:
-    Door(const Config& config, LightHandler& light, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
+    Door(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)
-        , light(light)
         , openSwitch(openSwitch)
         , closedSwitch(closedSwitch)
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
@@ -45,6 +44,7 @@ public:
         this->state = state;
         onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
     }
+    void lightChanged(float light);
     void populateTelemetry(JsonObject& json) override {
         json["emergencyStop"] = emergencyStop;
         json["gate"] = static_cast<int>(state);
@@ -52,7 +52,6 @@ public:
     }
 
 private:
-    LightHandler& light;
     SwitchHandler& openSwitch;
     SwitchHandler& closedSwitch;
     AccelStepper motor;
@@ -62,7 +61,7 @@ private:
     /**
      * The state of the gate.
      */
-    GateState state = GateState::OPEN;
+    GateState state;
 
     /**
      * Is the door disabled because its movement timed out?
