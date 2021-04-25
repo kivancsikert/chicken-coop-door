@@ -10,7 +10,7 @@ public:
         : fileSystem(fileSystem) {
     }
 
-    void begin();
+    void begin(bool reset);
     void update(const JsonDocument& json);
     void store();
 

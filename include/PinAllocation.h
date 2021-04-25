@@ -15,6 +15,8 @@
 #define OPEN_PIN GPIO_NUM_14
 #define CLOSED_PIN GPIO_NUM_12
 
+#define  RESET_BUTTON_PIN GPIO_NUM_2
+
 #elif defined(ESP8266)
 
 #define OPEN_PIN D5
@@ -27,5 +29,7 @@
 
 #define LIGHT_SDA D7
 #define LIGHT_SCL D4
+
+#define RESET_BUTTON_PIN D8
 
 #endif
