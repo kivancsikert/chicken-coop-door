@@ -13,7 +13,11 @@ T getJsonValue(const JsonDocument& json, const String& key, T defaultValue) {
     }
 }
 
-void Config::begin() {
+void Config::begin(bool reset) {
+    if (reset) {
+        Serial.println("Reset during startup, not reading configuration");
+        return;
+    }
     if (fileSystem.getFS().exists(CONFIG_FILE)) {
         File configFile = fileSystem.getFS().open(CONFIG_FILE, FILE_READ);
         DynamicJsonDocument configJson(configFile.size() * 2);

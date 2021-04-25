@@ -40,6 +40,7 @@ void setup() {
     Serial.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
 
     while (!Serial) {
         delay(100);
@@ -51,7 +52,8 @@ void setup() {
         return;
     }
 
-    config.begin();
+    bool reset = digitalRead(RESET_BUTTON_PIN) == LOW;
+    config.begin(reset);
 
     wifi.begin("chickens", googleIoTRootCert);
     ota.begin("chickens");
