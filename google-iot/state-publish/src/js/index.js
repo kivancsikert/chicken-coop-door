@@ -23,12 +23,14 @@ exports.statePublish = (event, context) => {
 };
 
 function describeEvent(event) {
-    if (event.init) {
+    if (event.hasOwnProperty("init")) {
         return "Initialized";
     } else if (event.hasOwnProperty("emergencyStop")) {
         return "Emergency stop activated!";
     } else if (event.hasOwnProperty("state")) {
         return `The door is now *${describeState(event.state)}*.`;
+    } else if (event.hasOwnProperty("manualOverride")) {
+        return `Manual override is *${event.manualOverride ? "enabled" : "disabled"}*.`;
     } else {
         return `Unknown event: \`${JSON.stringify(event)}\`.`;
     }
@@ -36,14 +38,14 @@ function describeEvent(event) {
 
 function describeState(state) {
     switch (state) {
-        case 0:
+        case 2:
             return "open";
         case 1:
-            return "closed";
-        case 2:
             return "opening";
-        case 3:
+        case -1:
             return "closing";
+        case -2:
+            return "closed";
         default:
             return `unknown (${state})`;
     }

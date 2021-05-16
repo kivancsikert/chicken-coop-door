@@ -13,10 +13,10 @@
 #include "Telemetry.h"
 
 enum class GateState {
-    OPEN,
-    CLOSED,
-    OPENING,
-    CLOSING
+    CLOSED  = -2,
+    CLOSING = -1,
+    OPENING = 1,
+    OPEN = 2
 };
 
 class Door
@@ -44,8 +44,13 @@ public:
         this->state = state;
         onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
     }
+    void setManualOverride(bool manualOverride) {
+        this->manualOverride = manualOverride;
+        onEvent([manualOverride](JsonObject& json) { json["manualOverride"] = manualOverride; });
+    }
     void lightChanged(float light);
     void populateTelemetry(JsonObject& json) override {
+        json["manualOverride"] = manualOverride;
         json["emergencyStop"] = emergencyStop;
         json["gate"] = static_cast<int>(state);
         json["motorPosition"] = motor.currentPosition();
@@ -62,6 +67,11 @@ private:
      * The state of the gate.
      */
     GateState state;
+
+    /**
+     * Ignore light levels, and keep open or closed until further notice.
+     */
+    bool manualOverride = false;
 
     /**
      * Is the door disabled because its movement timed out?
