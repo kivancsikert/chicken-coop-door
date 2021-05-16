@@ -31,6 +31,10 @@ void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) 
 }
 
 void Door::lightChanged(float light) {
+    // Ignore light changes when in manual override mode
+    if (manualOverride) {
+        return;
+    }
     if (light < config.closeLightLimit && state != GateState::CLOSED && state != GateState::CLOSING) {
         Serial.println("Closing...");
         startMoving(GateState::CLOSING);
