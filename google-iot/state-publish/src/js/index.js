@@ -36,14 +36,14 @@ function describeEvent(event) {
 
 function describeState(state) {
     switch (state) {
-        case 0:
+        case 2:
             return "open";
         case 1:
-            return "closed";
-        case 2:
             return "opening";
-        case 3:
+        case -1:
             return "closing";
+        case -2:
+            return "closed";
         default:
             return `unknown (${state})`;
     }

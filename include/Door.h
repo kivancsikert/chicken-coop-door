@@ -13,10 +13,10 @@
 #include "Telemetry.h"
 
 enum class GateState {
-    OPEN,
-    CLOSED,
-    OPENING,
-    CLOSING
+    CLOSED  = -2,
+    CLOSING = -1,
+    OPENING = 1,
+    OPEN = 2
 };
 
 class Door
