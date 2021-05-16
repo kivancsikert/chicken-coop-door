@@ -4,5 +4,8 @@
     "dependencies": {
         "@google-cloud/pubsub": "^2.10.0",
         "@slack/webhook": "^6.0.0"
+    },
+    "scripts": {
+        "start": "gcloud functions deploy statePublish --runtime nodejs14 --trigger-topic chicken-coop-door-state --set-env-vars SLACK_URL=$SLACK_URL --region europe-west1"
     }
 }
