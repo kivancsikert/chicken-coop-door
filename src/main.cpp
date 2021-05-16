@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <HTTPUpdate.h>
 
 #include "Door.h"
 #include "FileSystemHandler.h"
@@ -88,6 +89,26 @@ void setup() {
                 GateState targetState = static_cast<GateState>(targetStateValue);
                 Serial.println("Setting door state to " + String(targetStateValue));
                 door.setState(targetState);
+            }
+            if (json.containsKey("update")) {
+                String url = json["update"];
+                Serial.printf("Updating from version %s via URL %s\n", VERSION, url.c_str());
+                WiFiClientSecure& client = wifi.getClient();
+                HTTPUpdateResult result = httpUpdate.update(client, url, VERSION);
+                switch (result) {
+                    case HTTP_UPDATE_FAILED:
+                        Serial.println(httpUpdate.getLastErrorString());
+                        break;
+                    case HTTP_UPDATE_NO_UPDATES:
+                        Serial.println("No updates available");
+                        break;
+                    case HTTP_UPDATE_OK:
+                        Serial.println("Update OK");
+                        break;
+                    default:
+                        Serial.println("Unknown response");
+                        break;
+                }
             }
         });
 

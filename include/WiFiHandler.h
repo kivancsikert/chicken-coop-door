@@ -12,7 +12,7 @@ public:
 
     void begin(const String& hostname, const String& caCert);
 
-    Client& getClient() {
+    WiFiClientSecure& getClient() {
         return client;
     }
 
