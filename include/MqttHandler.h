@@ -24,7 +24,7 @@ public:
         std::function<void(JsonDocument&)> onCommand);
     void loop();
 
-    void publishState(const JsonDocument& json);
+    void publishStatus(const JsonDocument& json);
     void publishTelemetry(const JsonDocument& json);
 
 private:

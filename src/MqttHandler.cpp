@@ -87,12 +87,12 @@ void MqttHandler::loop() {
     }
 }
 
-void MqttHandler::publishState(const JsonDocument& json) {
+void MqttHandler::publishStatus(const JsonDocument& json) {
     String payload;
     serializeJson(json, payload);
-    mqtt->publishState(payload);
+    mqtt->publishTelemetry("/status", payload);
 #ifdef DUMP_MQTT
-    Serial.print("Published state: ");
+    Serial.print("Published status: ");
     serializeJsonPretty(json, Serial);
     Serial.println();
 #endif
