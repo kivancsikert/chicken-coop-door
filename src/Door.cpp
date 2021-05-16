@@ -1,6 +1,6 @@
 #include "Door.h"
 
-#define STEPS_AT_ONCE 100
+#define STEPS_AT_ONCE 500
 
 void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
     this->onEvent = onEvent;
