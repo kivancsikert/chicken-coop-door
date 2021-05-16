@@ -102,7 +102,7 @@ void setup() {
         populateEvent(event);
         JsonObject telemetry = root.createNestedObject("telemetry");
         telemetryProvider.populateTelemetry(telemetry);
-        mqtt.publishState(doc);
+        mqtt.publishStatus(doc);
     });
     light.setOnUpdate([](float light) {
         door.lightChanged(light);
