@@ -39,6 +39,8 @@ void WiFiHandler::begin(const String& hostname, const String& caCert) {
     // TODO Replace this with a non-deprecated variant
     client.setCACert((const uint8_t*) caCert.c_str(), caCert.length());
 #endif
+    // To allow accessing HTTPS content for updates
+    client.setInsecure();
 }
 
 void WiFiHandler::startWifi() {
