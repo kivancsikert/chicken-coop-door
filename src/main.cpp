@@ -4,10 +4,10 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <HTTPUpdate.h>
 
 #include "Door.h"
 #include "FileSystemHandler.h"
+#include "HttpUpdateHandler.h"
 #include "LightHandler.h"
 #include "MqttHandler.h"
 #include "OtaHandler.h"
@@ -28,6 +28,7 @@ SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.inve
 Door door(config, openSwitch, closedSwitch);
 
 MqttHandler mqtt;
+HttpUpdateHandler httpUpdateHandler(wifi);
 CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
 TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
 
@@ -92,23 +93,7 @@ void setup() {
             }
             if (json.containsKey("update")) {
                 String url = json["update"];
-                Serial.printf("Updating from version %s via URL %s\n", VERSION, url.c_str());
-                WiFiClientSecure& client = wifi.getClient();
-                HTTPUpdateResult result = httpUpdate.update(client, url, VERSION);
-                switch (result) {
-                    case HTTP_UPDATE_FAILED:
-                        Serial.println(httpUpdate.getLastErrorString());
-                        break;
-                    case HTTP_UPDATE_NO_UPDATES:
-                        Serial.println("No updates available");
-                        break;
-                    case HTTP_UPDATE_OK:
-                        Serial.println("Update OK");
-                        break;
-                    default:
-                        Serial.println("Unknown response");
-                        break;
-                }
+                httpUpdateHandler.update(url, VERSION);
             }
         });
 
