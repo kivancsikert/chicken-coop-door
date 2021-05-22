@@ -75,11 +75,7 @@ bool Door::loop() {
 
 void Door::advanceMotor(long steps) {
     if (millis() - movementStarted > config.movementTimeout) {
-        Serial.println("Move timed out, emergency stopping");
-        emergencyStop = true;
-        motor.stop();
-        motor.disableOutputs();
-        onEvent([](JsonObject& json) { json["emergencyStop"] = true; });
+        halt("Move timed out");
         return;
     }
     motor.move(steps);

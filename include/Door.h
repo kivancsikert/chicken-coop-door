@@ -13,7 +13,7 @@
 #include "Telemetry.h"
 
 enum class GateState {
-    CLOSED  = -2,
+    CLOSED = -2,
     CLOSING = -1,
     OPENING = 1,
     OPEN = 2
@@ -100,6 +100,17 @@ private:
      * Advances the motor in the given direction.
      */
     void advanceMotor(long steps);
+
+    void halt(const String& reason) {
+        Serial.println("Emergency stopping: " + reason);
+        emergencyStop = true;
+        motor.stop();
+        motor.disableOutputs();
+        onEvent([reason](JsonObject& json) {
+            json["emergencyStop"] = true;
+            json["reason"] = reason;
+        });
+    }
 
     unsigned long movementStarted;
 };
