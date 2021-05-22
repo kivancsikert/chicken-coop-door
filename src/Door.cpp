@@ -12,10 +12,10 @@ void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) 
 
     // Set initial state
     String message;
-    if (openSwitch.getState()) {
+    if (openSwitch.isEngaged()) {
         message = "Door initialized in open state";
         state = GateState::OPEN;
-    } else if (closedSwitch.getState()) {
+    } else if (closedSwitch.isEngaged()) {
         message = "Door initialized in closed state";
         state = GateState::CLOSED;
     } else {
@@ -56,14 +56,14 @@ bool Door::loop() {
     }
 
     if (state == GateState::CLOSING) {
-        if (closedSwitch.getState()) {
+        if (closedSwitch.isEngaged()) {
             Serial.println("Closed");
             stopMoving(GateState::CLOSED);
         } else {
             advanceMotor(-STEPS_AT_ONCE);
         }
     } else if (state == GateState::OPENING) {
-        if (openSwitch.getState()) {
+        if (openSwitch.isEngaged()) {
             Serial.println("Open");
             stopMoving(GateState::OPEN);
         } else {

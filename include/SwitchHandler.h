@@ -23,7 +23,7 @@ public:
     }
 
     void update() {
-        state = digitalRead(pin) ^ invertSwitch();
+        engaged = digitalRead(pin) ^ invertSwitch();
     }
 
     unsigned long getPeriodInMillis() override {
@@ -32,11 +32,11 @@ public:
     }
 
     void populateTelemetry(JsonObject& json) override {
-        json[name] = state;
+        json[name] = engaged;
     }
 
-    bool getState() {
-        return state;
+    bool isEngaged() {
+        return engaged;
     }
 
 private:
@@ -44,5 +44,5 @@ private:
     const int pin;
     const std::function<bool()> invertSwitch;
 
-    bool state;
+    bool engaged;
 };
