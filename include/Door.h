@@ -40,13 +40,10 @@ public:
     void moveTo(long position) {
         motor.moveTo(position);
     }
-    void setState(GateState state) {
-        this->state = state;
-        onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
-    }
-    void setManualOverride(bool manualOverride) {
-        this->manualOverride = manualOverride;
-        onEvent([manualOverride](JsonObject& json) { json["manualOverride"] = manualOverride; });
+    void override(GateState state) {
+        this->manualOverride = true;
+        onEvent([](JsonObject& json) { json["manualOverride"] = true; });
+        startMoving(state);
     }
     void lightChanged(float light);
     void populateTelemetry(JsonObject& json) override {
@@ -77,6 +74,11 @@ private:
      * Is the door disabled because its movement timed out?
      */
     bool emergencyStop = false;
+
+    void setState(GateState state) {
+        this->state = state;
+        onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
+    }
 
     /**
      * Starts to move the motor towards opening or closing.
