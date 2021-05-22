@@ -23,13 +23,13 @@
 #define CLOSED_PIN D6
 
 #define MOTOR_PIN1 D0
-#define MOTOR_PIN2 D1
-#define MOTOR_PIN3 D2
-#define MOTOR_PIN4 D3
+#define MOTOR_PIN2 D3
+#define MOTOR_PIN3 D4
+#define MOTOR_PIN4 D8
 
-#define LIGHT_SDA D7
-#define LIGHT_SCL D4
+#define LIGHT_SCL D1
+#define LIGHT_SDA D2
 
-#define RESET_BUTTON_PIN D8
+#define RESET_BUTTON_PIN D7
 
 #endif
