@@ -21,4 +21,7 @@ See [Galagonya Kert dashboards on Google Data Studio](https://datastudio.google.
     ```
 
     Private key must be exactly 32 bytes, pad front with `00:` if necessary.
+
+    More info on how to create the private key is here: https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino#quickstart
+
 * Deploy file system image.
