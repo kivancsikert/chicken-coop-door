@@ -84,12 +84,11 @@ void setup() {
                 Serial.println("Moving door to " + String(targetPosition));
                 door.moveTo(targetPosition);
             }
-            if (json.containsKey("state")) {
-                int targetStateValue = json["state"];
+            if (json.containsKey("override")) {
+                int targetStateValue = json["override"];
                 GateState targetState = static_cast<GateState>(targetStateValue);
                 Serial.println("Setting door state to " + String(targetStateValue));
-                door.setManualOverride(true);
-                door.setState(targetState);
+                door.override(targetState);
             }
             if (json.containsKey("update")) {
                 String url = json["update"];
