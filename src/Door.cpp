@@ -13,6 +13,10 @@ void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) 
     // Set initial state
     String message;
     if (openSwitch.isEngaged()) {
+        if (closedSwitch.isEngaged()) {
+            halt("Both open and close switches are engaged");
+            return;
+        }
         message = "Door initialized in open state";
         state = GateState::OPEN;
     } else if (closedSwitch.isEngaged()) {
