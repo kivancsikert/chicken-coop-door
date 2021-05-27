@@ -5,7 +5,7 @@
 #endif
 
 void WiFiHandler::begin(const String& hostname, const String& caCert) {
-    bool wifiModeSuccessful = WiFi.mode(WIFI_AP_STA);
+    bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {
         Serial.println("WIFI mode unsuccessful");
     }
@@ -72,7 +72,7 @@ bool WiFiHandler::awaitConnect() {
                 break;
         }
         // TODO Make WIFI connection timeout configurable
-        if (millis() - startTime > 10 * 1000) {
+        if (millis() - startTime > 20 * 1000) {
             Serial.println("WIFI connection timed out");
             return false;
         }
