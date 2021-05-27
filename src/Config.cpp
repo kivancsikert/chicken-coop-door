@@ -43,6 +43,7 @@ void Config::update(const JsonDocument& json) {
 
     wifiSsid = getJsonValue(json, "wifiSsid", "");
     wifiPassword = getJsonValue(json, "wifiPassword", "");
+    wifiConnectionTimeout = getJsonValue(json, "wifiConnectionTimeout", 20 * 1000);
 
     statePublishingInterval = getJsonValue(json, "statePublishingInterval", 60 * 1000);
 }
@@ -61,6 +62,7 @@ void Config::store() {
 
     json["wifiSsid"] = wifiSsid;
     json["wifiPassword"] = wifiPassword;
+    json["wifiConnectionTimeout"] = wifiConnectionTimeout;
 
     json["statePublishingInterval"] = statePublishingInterval;
 

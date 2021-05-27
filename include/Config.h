@@ -66,6 +66,11 @@ public:
     String wifiPassword;
 
     /**
+     * WIFI connection timeout.
+     */
+    unsigned long wifiConnectionTimeout;
+
+    /**
      * Number of milliseconds between publishing state.
      */
     unsigned long statePublishingInterval;
