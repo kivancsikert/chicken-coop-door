@@ -71,8 +71,7 @@ bool WiFiHandler::awaitConnect() {
             default:
                 break;
         }
-        // TODO Make WIFI connection timeout configurable
-        if (millis() - startTime > 20 * 1000) {
+        if (millis() - startTime > config.wifiConnectionTimeout) {
             Serial.println("WIFI connection timed out");
             return false;
         }
