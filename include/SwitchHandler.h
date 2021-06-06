@@ -4,7 +4,7 @@
 #include <functional>
 
 class SwitchHandler
-    : public TimedLoopable,
+    : public TimedLoopable<void>,
       public TelemetryProvider {
 public:
     SwitchHandler(const String& name, int pin, std::function<bool()> invertSwitch)

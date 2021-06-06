@@ -21,7 +21,8 @@ enum class GateState {
 
 class Door
     : public TelemetryProvider,
-      private ConfigAware {
+      private ConfigAware,
+      private Loopable<bool> {
 public:
     Door(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : ConfigAware(config)
@@ -35,7 +36,7 @@ public:
     /**
      * Loops the door, and returns whether the door is currently moving.
      */
-    bool loop();
+    bool loop() override;
 
     void moveTo(long position) {
         motor.moveTo(position);

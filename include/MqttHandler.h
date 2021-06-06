@@ -7,6 +7,7 @@
 #include <MQTT.h>
 #include <functional>
 
+#include "Loopable.h"
 #include "NtpHandler.h"
 #include "WiFiHandler.h"
 
@@ -16,7 +17,7 @@
 // Maximum 24H (3600 * 24)
 #define JWT_EXPIRATION_IN_SECONDS (60 * 60)
 
-class MqttHandler {
+class MqttHandler : Loopable<void> {
 public:
     MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler);
 
@@ -24,7 +25,7 @@ public:
         const JsonDocument& config,
         std::function<void(JsonDocument&)> onConfigChange,
         std::function<void(JsonDocument&)> onCommand);
-    void loop();
+    void loop() override;
 
     void publishStatus(const JsonDocument& json);
     void publishTelemetry(const JsonDocument& json);

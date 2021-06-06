@@ -9,7 +9,7 @@
 #include <functional>
 
 class LightHandler
-    : public TimedLoopable,
+    : public TimedLoopable<void>,
       public TelemetryProvider,
       private ConfigAware {
 public:

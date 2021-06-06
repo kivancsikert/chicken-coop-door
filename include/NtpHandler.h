@@ -3,7 +3,7 @@
 #include "Loopable.h"
 #include "WiFiHandler.h"
 
-class NtpHandler : private Loopable {
+class NtpHandler : private Loopable<void> {
 public:
     NtpHandler(WiFiHandler& wifiHandler)
         : wifiHandler(wifiHandler) {

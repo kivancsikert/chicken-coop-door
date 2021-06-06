@@ -28,7 +28,7 @@ private:
 };
 
 class TelemetryPublisher
-    : public TimedLoopable,
+    : public TimedLoopable<void>,
       private ConfigAware {
 public:
     TelemetryPublisher(const Config& config, MqttHandler& mqtt, TelemetryProvider& telemetryProvider)
