@@ -122,8 +122,11 @@ void loop() {
     light.loop();
     openSwitch.loop();
     closedSwitch.loop();
-    door.loop();
+    bool moving = door.loop();
     telemetryPublisher.loop();
     ntp.loop();
     mqtt.loop();
+    if (!moving) {
+        delay(1000);
+    }
 }

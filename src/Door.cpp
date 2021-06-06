@@ -55,7 +55,6 @@ bool Door::loop() {
 
     if (!movementExpected) {
         motor.disableOutputs();
-        delay(250);
         return false;
     }
 
