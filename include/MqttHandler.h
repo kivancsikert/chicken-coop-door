@@ -7,6 +7,9 @@
 #include <MQTT.h>
 #include <functional>
 
+#include "NtpHandler.h"
+#include "WiFiHandler.h"
+
 #define MQTT_BUFFER_SIZE 2048
 
 // Time (seconds) to expire token += 20 minutes for drift
@@ -15,10 +18,9 @@
 
 class MqttHandler {
 public:
-    MqttHandler();
+    MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler);
 
     void begin(
-        Client& netClient,
         const JsonDocument& config,
         std::function<void(JsonDocument&)> onConfigChange,
         std::function<void(JsonDocument&)> onCommand);
@@ -46,4 +48,7 @@ private:
 
     std::function<void(JsonDocument&)> onConfigChange;
     std::function<void(JsonDocument&)> onCommand;
+
+    WiFiHandler& wifiHandler;
+    NtpHandler& ntpHandler;
 };

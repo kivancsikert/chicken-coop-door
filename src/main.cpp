@@ -10,6 +10,7 @@
 #include "HttpUpdateHandler.h"
 #include "LightHandler.h"
 #include "MqttHandler.h"
+#include "NtpHandler.h"
 #include "OtaHandler.h"
 #include "SwitchHandler.h"
 #include "Telemetry.h"
@@ -27,7 +28,8 @@ SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpen
 SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
 Door door(config, openSwitch, closedSwitch);
 
-MqttHandler mqtt;
+NtpHandler ntp(wifi);
+MqttHandler mqtt(wifi, ntp);
 HttpUpdateHandler httpUpdateHandler(wifi);
 CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
 TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
@@ -68,7 +70,6 @@ void setup() {
         return;
     }
     mqtt.begin(
-        wifi.getClient(),
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
@@ -123,5 +124,6 @@ void loop() {
     closedSwitch.loop();
     door.loop();
     telemetryPublisher.loop();
+    ntp.loop();
     mqtt.loop();
 }
