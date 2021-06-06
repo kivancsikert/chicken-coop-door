@@ -4,7 +4,7 @@
 #include <ESP8266WiFi.h>
 #endif
 
-void WiFiHandler::begin(const String& hostname, const String& caCert) {
+void WiFiHandler::begin() {
     bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {
         Serial.println("WIFI mode unsuccessful");
