@@ -123,9 +123,15 @@ void loop() {
     openSwitch.loop();
     closedSwitch.loop();
     bool moving = door.loop();
-    telemetryPublisher.loop();
-    ntp.loop();
-    mqtt.loop();
+    if (!moving) {
+        // Don't try to connect while moving
+        wifi.ensureConnected();
+    }
+    if (wifi.connected()) {
+        telemetryPublisher.loop();
+        ntp.loop();
+        mqtt.loop();
+    }
     if (!moving) {
         delay(1000);
     }

@@ -9,19 +9,33 @@ void WiFiHandler::begin() {
     if (!wifiModeSuccessful) {
         Serial.println("WIFI mode unsuccessful");
     }
-    delay(500);
-    int retries = 3;
-    while (true) {
-        startWifi();
-        if (awaitConnect()) {
-            break;
+}
+
+bool WiFiHandler::ensureConnected() {
+    if (!connected()) {
+        return connect();
+    } else {
+        return true;
+    }
+}
+
+bool WiFiHandler::connect() {
+    if (!config.wifiSsid.isEmpty()) {
+        Serial.print("Using stored WIFI configuration to connect to ");
+        Serial.print(config.wifiSsid);
+        Serial.print("...");
+        WiFi.begin(config.wifiSsid.c_str(), config.wifiPassword.c_str());
+    } else {
+        Serial.print("WIFI is not configured, using SmartConfig...");
+        bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
+        if (!smartConfigBeginSuccess) {
+            Serial.print(" unsuccessful");
         }
+    }
+
+    if (!awaitConnect()) {
         WiFi.stopSmartConfig();
-        if (--retries > 0) {
-            continue;
-        }
-        Serial.println("Failed to connect WIFI, restarting");
-        ESP.restart();
+        return false;
     }
 
     Serial.print(" connected, IP address: ");
@@ -41,21 +55,7 @@ void WiFiHandler::begin() {
 #endif
     // To allow accessing HTTPS content for updates
     client.setInsecure();
-}
-
-void WiFiHandler::startWifi() {
-    if (!config.wifiSsid.isEmpty()) {
-        Serial.print("Using stored WIFI configuration to connect to ");
-        Serial.print(config.wifiSsid);
-        Serial.print("...");
-        WiFi.begin(config.wifiSsid.c_str(), config.wifiPassword.c_str());
-    } else {
-        Serial.print("WIFI is not configured, using SmartConfig...");
-        bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
-        if (!smartConfigBeginSuccess) {
-            Serial.print(" unsuccessful");
-        }
-    }
+    return true;
 }
 
 bool WiFiHandler::awaitConnect() {
@@ -67,12 +67,14 @@ bool WiFiHandler::awaitConnect() {
                 return true;
             case WL_CONNECT_FAILED:
                 Serial.println("WIFI connection failed");
+                WiFi.disconnect();
                 return false;
             default:
                 break;
         }
         if (millis() - startTime > config.wifiConnectionTimeout) {
             Serial.println("WIFI connection timed out");
+            WiFi.disconnect();
             return false;
         }
         delay(500);

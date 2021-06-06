@@ -55,8 +55,7 @@ void MqttHandler::messageReceived(const String& topic, const String& payload) {
 
 void MqttHandler::loop() {
     if (mqtt == nullptr) {
-        WiFiClientSecure netClient = wifiHandler.getClient();
-        if (!netClient.connected()) {
+        if (!wifiHandler.connected()) {
             Serial.println("Couldn't connect to MQTT because WIFI is down");
             return;
         }
@@ -75,24 +74,26 @@ void MqttHandler::loop() {
             true,    // cleanSession
             10000    // timeout
         );
-        mqtt = new CloudIoTCoreMqtt(mqttClient, &netClient, device);
+        mqtt = new CloudIoTCoreMqtt(mqttClient, &wifiHandler.getClient(), device);
         mqtt->setLogConnect(false);
 #ifdef USE_GOOGLE_LTS_DOMAIN
         mqtt->setUseLts(true);
 #endif
         mqtt->startMQTT();
-        mqtt->mqttConnect(true);
     }
-
-    mqtt->loop();
 
     if (!mqttClient->connected()) {
         Serial.println("Connecting to MQTT...");
         mqtt->mqttConnect();
     }
+
+    mqtt->loop();
 }
 
 void MqttHandler::publishStatus(const JsonDocument& json) {
+    if (mqttClient == nullptr || !mqttClient->connected()) {
+        return;
+    }
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry("/status", payload);
@@ -104,6 +105,9 @@ void MqttHandler::publishStatus(const JsonDocument& json) {
 }
 
 void MqttHandler::publishTelemetry(const JsonDocument& json) {
+    if (mqttClient == nullptr || !mqttClient->connected()) {
+        return;
+    }
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry(payload);

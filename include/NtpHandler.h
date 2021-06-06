@@ -12,8 +12,9 @@ public:
     void loop() override {
         if (millis() - lastChecked > 24 * 60 * 60 * 1000) {
             upToDate = false;
-
-            if (!wifiHandler.getClient().connected()) {
+        }
+        if (!upToDate) {
+            if (!wifiHandler.connected()) {
                 Serial.println("Not updating NTP because WIFI is not available");
                 return;
             }

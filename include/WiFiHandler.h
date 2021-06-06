@@ -13,13 +13,18 @@ public:
     }
 
     void begin();
+    bool ensureConnected();
+
+    bool connected() {
+        return WiFi.status() == WL_CONNECTED;
+    }
 
     WiFiClientSecure& getClient() {
         return client;
     }
 
 private:
-    void startWifi();
+    bool connect();
     bool awaitConnect();
 
     const String hostname;
