@@ -50,6 +50,13 @@ void Config::update(const JsonDocument& json) {
 
 void Config::store() {
     DynamicJsonDocument json(2048);
+    serialize(json);
+    File configFile = fileSystem.getFS().open(CONFIG_FILE, FILE_WRITE);
+    serializeJson(json, configFile);
+    configFile.close();
+}
+
+void Config::serialize(JsonDocument& json) {
     json["openLightLimit"] = openLightLimit;
     json["closeLightLimit"] = closeLightLimit;
     json["lightUpdateInterval"] = lightUpdateInterval;
@@ -65,8 +72,4 @@ void Config::store() {
     json["wifiConnectionTimeout"] = wifiConnectionTimeout;
 
     json["statePublishingInterval"] = statePublishingInterval;
-
-    File configFile = fileSystem.getFS().open(CONFIG_FILE, FILE_WRITE);
-    serializeJson(json, configFile);
-    configFile.close();
 }
