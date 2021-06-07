@@ -2,13 +2,14 @@
 
 #include <Arduino.h>
 
+template <class T>
 class Loopable {
 public:
-    virtual void loop() = 0;
+    virtual T loop() = 0;
 };
 
 class TimedLoopable
-    : public Loopable {
+    : public Loopable<void> {
 public:
     void loop() override {
         unsigned long currentTimeMillis = millis();

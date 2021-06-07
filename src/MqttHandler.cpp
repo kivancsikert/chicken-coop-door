@@ -2,7 +2,9 @@
 
 MqttHandler* instance;
 
-MqttHandler::MqttHandler() {
+MqttHandler::MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler)
+    : wifiHandler(wifiHandler)
+    , ntpHandler(ntpHandler) {
     instance = this;
 }
 
@@ -15,7 +17,7 @@ void messageReceived(String& topic, String& payload) {
     instance->messageReceived(topic, payload);
 }
 
-void MqttHandler::begin(Client& netClient,
+void MqttHandler::begin(
     const JsonDocument& config,
     std::function<void(JsonDocument&)> onConfigChange,
     std::function<void(JsonDocument&)> onCommand) {
@@ -23,38 +25,11 @@ void MqttHandler::begin(Client& netClient,
     this->onConfigChange = onConfigChange;
     this->onCommand = onCommand;
 
-    configTime(0, 0, "pool.ntp.org");
-    while (true) {
-        time_t currentTime = time(nullptr);
-        if (currentTime > 1616800541) {
-            Serial.printf("Current time is %ld\n", currentTime);
-            break;
-        }
-        delay(10);
-    }
-
     projectId = config["projectId"].as<String>();
     location = config["location"].as<String>();
     registryId = config["registryId"].as<String>();
     deviceId = config["deviceId"].as<String>();
     privateKey = config["privateKey"].as<String>();
-
-    Serial.println("Connecting device '" + deviceId + "' to Google Cloud via MQTT on project '" + projectId + "' in '" + location + "' in registry '" + registryId + "'\n");
-    device = new CloudIoTCoreDevice(projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
-
-    mqttClient = new MQTTClient(MQTT_BUFFER_SIZE);
-    mqttClient->setOptions(
-        180,     // keepAlive
-        true,    // cleanSession
-        10000    // timeout
-    );
-    mqtt = new CloudIoTCoreMqtt(mqttClient, &netClient, device);
-    mqtt->setLogConnect(false);
-#ifdef USE_GOOGLE_LTS_DOMAIN
-    mqtt->setUseLts(true);
-#endif
-    mqtt->startMQTT();
-    mqtt->mqttConnect();
 }
 
 String MqttHandler::getJwt() {
@@ -79,15 +54,46 @@ void MqttHandler::messageReceived(const String& topic, const String& payload) {
 }
 
 void MqttHandler::loop() {
-    mqtt->loop();
+    if (mqtt == nullptr) {
+        if (!wifiHandler.connected()) {
+            Serial.println("Couldn't connect to MQTT because WIFI is down");
+            return;
+        }
+
+        if (!ntpHandler.isUpToDate()) {
+            Serial.println("Couldn't connect to MQTT because NTP is not up to date");
+            return;
+        }
+
+        Serial.println("Using Google Cloud device '" + deviceId + "' on project '" + projectId + "' in '" + location + "' in registry '" + registryId + "'\n");
+        device = new CloudIoTCoreDevice(projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
+
+        mqttClient = new MQTTClient(MQTT_BUFFER_SIZE);
+        mqttClient->setOptions(
+            180,     // keepAlive
+            true,    // cleanSession
+            10000    // timeout
+        );
+        mqtt = new CloudIoTCoreMqtt(mqttClient, &wifiHandler.getClient(), device);
+        mqtt->setLogConnect(false);
+#ifdef USE_GOOGLE_LTS_DOMAIN
+        mqtt->setUseLts(true);
+#endif
+        mqtt->startMQTT();
+    }
 
     if (!mqttClient->connected()) {
-        Serial.println("Reconnecting...");
+        Serial.println("Connecting to MQTT...");
         mqtt->mqttConnect();
     }
+
+    mqtt->loop();
 }
 
 void MqttHandler::publishStatus(const JsonDocument& json) {
+    if (mqttClient == nullptr || !mqttClient->connected()) {
+        return;
+    }
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry("/status", payload);
@@ -99,6 +105,9 @@ void MqttHandler::publishStatus(const JsonDocument& json) {
 }
 
 void MqttHandler::publishTelemetry(const JsonDocument& json) {
+    if (mqttClient == nullptr || !mqttClient->connected()) {
+        return;
+    }
     String payload;
     serializeJson(json, payload);
     mqtt->publishTelemetry(payload);

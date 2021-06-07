@@ -76,6 +76,8 @@ public:
     unsigned long statePublishingInterval;
 
 private:
+    void serialize(JsonDocument& json);
+
     FileSystemHandler& fileSystem;
 };
 

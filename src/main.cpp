@@ -10,6 +10,7 @@
 #include "HttpUpdateHandler.h"
 #include "LightHandler.h"
 #include "MqttHandler.h"
+#include "NtpHandler.h"
 #include "OtaHandler.h"
 #include "SwitchHandler.h"
 #include "Telemetry.h"
@@ -20,14 +21,15 @@
 FileSystemHandler fileSystem;
 Config config(fileSystem);
 OtaHandler ota;
-WiFiHandler wifi(config);
+WiFiHandler wifi(config, "chickens", googleIoTRootCert);
 
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
 SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
 Door door(config, openSwitch, closedSwitch);
 
-MqttHandler mqtt;
+NtpHandler ntp(wifi);
+MqttHandler mqtt(wifi, ntp);
 HttpUpdateHandler httpUpdateHandler(wifi);
 CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
 TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
@@ -57,7 +59,7 @@ void setup() {
     bool reset = digitalRead(RESET_BUTTON_PIN) == LOW;
     config.begin(reset);
 
-    wifi.begin("chickens", googleIoTRootCert);
+    wifi.begin();
     ota.begin("chickens");
 
     File iotConfigFile = fileSystem.getFS().open("/iot-config.json", FILE_READ);
@@ -68,7 +70,6 @@ void setup() {
         return;
     }
     mqtt.begin(
-        wifi.getClient(),
         iotConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
@@ -121,7 +122,14 @@ void loop() {
     light.loop();
     openSwitch.loop();
     closedSwitch.loop();
-    door.loop();
-    telemetryPublisher.loop();
-    mqtt.loop();
+    bool moving = door.loop();
+    wifi.loop();
+    if (wifi.connected()) {
+        telemetryPublisher.loop();
+        ntp.loop();
+        mqtt.loop();
+    }
+    if (!moving) {
+        delay(100);
+    }
 }

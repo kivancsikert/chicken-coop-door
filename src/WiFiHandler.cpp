@@ -1,49 +1,21 @@
 #include "WiFiHandler.h"
 
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#endif
-
-void WiFiHandler::begin(const String& hostname, const String& caCert) {
+void WiFiHandler::begin() {
     bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {
         Serial.println("WIFI mode unsuccessful");
     }
-    delay(500);
-    int retries = 3;
-    while (true) {
-        startWifi();
-        if (awaitConnect()) {
-            break;
-        }
-        WiFi.stopSmartConfig();
-        if (--retries > 0) {
-            continue;
-        }
-        Serial.println("Failed to connect WIFI, restarting");
-        ESP.restart();
-    }
-
-    Serial.print(" connected, IP address: ");
-    Serial.print(WiFi.localIP());
-    Serial.print(", hostname: ");
-#if defined(ESP32)
-    WiFi.setHostname(hostname.c_str());
-    Serial.println(WiFi.getHostname());
-
-    client.setCACert(caCert.c_str());
-#elif defined(ESP8266)
-    WiFi.hostname(hostname);
-    Serial.println(WiFi.hostname());
-
-    // TODO Replace this with a non-deprecated variant
-    client.setCACert((const uint8_t*) caCert.c_str(), caCert.length());
-#endif
-    // To allow accessing HTTPS content for updates
-    client.setInsecure();
 }
 
-void WiFiHandler::startWifi() {
+void WiFiHandler::timedLoop() {
+    if (connecting) {
+        awaitConnect();
+    } else if (!connected()) {
+        startConnecting();
+    }
+}
+
+void WiFiHandler::startConnecting() {
     if (!config.wifiSsid.isEmpty()) {
         Serial.print("Using stored WIFI configuration to connect to ");
         Serial.print(config.wifiSsid);
@@ -53,29 +25,55 @@ void WiFiHandler::startWifi() {
         Serial.print("WIFI is not configured, using SmartConfig...");
         bool smartConfigBeginSuccess = WiFi.beginSmartConfig();
         if (!smartConfigBeginSuccess) {
-            Serial.print(" unsuccessful");
+            Serial.println(" couldn't init SmartConfig, giving up");
+            stopConnecting();
+            return;
         }
     }
+    connectionStarted = millis();
+    connecting = true;
 }
 
 bool WiFiHandler::awaitConnect() {
-    unsigned long startTime = millis();
-    while (true) {
-        wl_status_t status = WiFi.status();
-        switch (status) {
-            case WL_CONNECTED:
-                return true;
-            case WL_CONNECT_FAILED:
-                Serial.println("WIFI connection failed");
-                return false;
-            default:
-                break;
-        }
-        if (millis() - startTime > config.wifiConnectionTimeout) {
-            Serial.println("WIFI connection timed out");
-            return false;
-        }
-        delay(500);
-        Serial.print(".");
+    wl_status_t status = WiFi.status();
+    if (status == WL_CONNECTED) {
+        connecting = false;
+        Serial.print(" connected, IP address: ");
+        Serial.print(WiFi.localIP());
+        Serial.print(", hostname: ");
+#if defined(ESP32)
+        WiFi.setHostname(hostname.c_str());
+        Serial.println(WiFi.getHostname());
+
+        client.setCACert(caCert.c_str());
+#elif defined(ESP8266)
+        WiFi.hostname(hostname);
+        Serial.println(WiFi.hostname());
+
+        // TODO Replace this with a non-deprecated variant
+        client.setCACert((const uint8_t*) caCert.c_str(), caCert.length());
+#endif
+        // To allow accessing HTTPS content for updates
+        client.setInsecure();
+        return true;
     }
+
+    Serial.print(".");
+    if (status == WL_CONNECT_FAILED) {
+        // There doesn't seem to be a better way to work around this
+        // See https://github.com/esp8266/Arduino/issues/5527
+        Serial.println("WIFI connection failed, restarting");
+        delay(1000);
+        ESP.restart();
+    } else if (millis() - connectionStarted > config.wifiConnectionTimeout) {
+        Serial.println("WIFI connection timed out");
+        stopConnecting();
+    }
+    return false;
+}
+
+void WiFiHandler::stopConnecting() {
+    connecting = false;
+    WiFi.stopSmartConfig();
+    WiFi.disconnect();
 }

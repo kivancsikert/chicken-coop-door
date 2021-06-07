@@ -17,7 +17,14 @@ public:
         : ConfigAware(config) {
     }
 
-    void begin(int sda, int scl);
+    void begin(int sda, int scl) {
+        Wire.begin(sda, scl);
+        if (sensor.begin(BH1750::CONTINUOUS_LOW_RES_MODE)) {
+            Serial.println("Light sensor initialised");
+        } else {
+            Serial.println("Error initialising light sensor");
+        }
+    }
 
     void setOnUpdate(std::function<void(float)> onUpdate) {
         this->onUpdate = onUpdate;
@@ -31,7 +38,20 @@ protected:
     unsigned long getPeriodInMillis() override {
         return config.lightUpdateInterval;
     }
-    void timedLoop() override;
+    void timedLoop() override {
+        currentLevel = sensor.readLightLevel();
+
+        size_t maxMaxmeasurements = config.lightLatencyInterval / config.lightUpdateInterval;
+        while (measurements.size() >= maxMaxmeasurements) {
+            sum -= measurements.front();
+            measurements.pop_front();
+        }
+        measurements.emplace_back(currentLevel);
+        sum += currentLevel;
+
+        double averageLevel = sum / measurements.size();
+        onUpdate(averageLevel);
+    }
 
 private:
     BH1750 sensor;
