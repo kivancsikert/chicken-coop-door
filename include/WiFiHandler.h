@@ -1,10 +1,13 @@
 #pragma once
 
 #include "Config.h"
+#include "Loopable.h"
+
 #include <WiFiClientSecure.h>
 
 class WiFiHandler
-    : private ConfigAware {
+    : public TimedLoopable,
+      private ConfigAware {
 public:
     WiFiHandler(const Config& config, const String& hostname, const String& caCert)
         : ConfigAware(config)
@@ -13,7 +16,6 @@ public:
     }
 
     void begin();
-    bool ensureConnected();
 
     bool connected() {
         return WiFi.status() == WL_CONNECTED;
@@ -23,11 +25,21 @@ public:
         return client;
     }
 
+protected:
+    unsigned long getPeriodInMillis() override {
+        return 500;
+    }
+    void timedLoop() override;
+
 private:
-    bool connect();
+    void startConnecting();
+    void stopConnecting();
     bool awaitConnect();
 
     const String hostname;
     const String caCert;
     WiFiClientSecure client;
+
+    bool connecting = false;
+    unsigned long connectionStarted;
 };
