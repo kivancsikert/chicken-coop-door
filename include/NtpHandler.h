@@ -3,37 +3,47 @@
 #include "Loopable.h"
 #include "WiFiHandler.h"
 
-class NtpHandler : private Loopable<void> {
+class NtpHandler : public TimedLoopable<void> {
 public:
     NtpHandler(WiFiHandler& wifiHandler)
         : wifiHandler(wifiHandler) {
     }
 
-    void loop() override {
+    void timedLoop() override {
         if (millis() - lastChecked > 24 * 60 * 60 * 1000) {
-            upToDate = false;
+            state = State::NEEDS_UPDATE;
         }
-        if (!upToDate) {
-            if (!wifiHandler.connected()) {
-                Serial.println("Not updating NTP because WIFI is not available");
-                return;
-            }
-
-            Serial.println("Updating time from NTP");
-            configTime(0, 0, "pool.ntp.org");
-            unsigned long start = millis();
-            while (millis() - start < 10 * 1000) {
-                long currentTime = getTime();
-                if (currentTime < 1616800541) {
-                    delay(10);
-                    continue;
-                }
-                Serial.printf("Current time is %ld\n", currentTime);
-                lastChecked = millis();
-                upToDate = true;
+        switch (state) {
+            case State::UP_TO_DATE:
                 break;
-            }
+            case State::NEEDS_UPDATE:
+                if (!wifiHandler.connected()) {
+                    Serial.println("Not updating NTP because WIFI is not available");
+                    return;
+                }
+                Serial.println("Updating time from NTP");
+                configTime(0, 0, "pool.ntp.org");
+                updateStarted = millis();
+                state = State::UPDATING;
+                break;
+            case State::UPDATING:
+                long currentTime = getTime();
+                if (currentTime > 1616800541) {
+                    Serial.printf("Current time is %ld\n", currentTime);
+                    lastChecked = millis();
+                    state = State::UP_TO_DATE;
+                    break;
+                }
+                if (millis() - updateStarted > 10 * 1000) {
+                    Serial.println("NPT update timed out");
+                    state = State::NEEDS_UPDATE;
+                }
+                break;
         }
+    }
+    void defaultValue() override {}
+    unsigned long getPeriodInMillis() {
+        return 500;
     }
 
     long getTime() {
@@ -41,12 +51,20 @@ public:
     }
 
     bool isUpToDate() {
-        return upToDate;
+        return state == State::UP_TO_DATE;
     }
 
 private:
     unsigned long lastChecked = 0;
-    bool upToDate = false;
+
+    enum class State {
+        NEEDS_UPDATE,
+        UPDATING,
+        UP_TO_DATE
+    };
+
+    State state = State::NEEDS_UPDATE;
+    unsigned long updateStarted;
 
     WiFiHandler& wifiHandler;
 };
