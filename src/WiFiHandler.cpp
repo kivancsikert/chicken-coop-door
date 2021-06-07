@@ -1,9 +1,5 @@
 #include "WiFiHandler.h"
 
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#endif
-
 void WiFiHandler::begin() {
     bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {

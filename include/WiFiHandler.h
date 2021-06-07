@@ -3,6 +3,9 @@
 #include "Config.h"
 #include "Loopable.h"
 
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 #include <WiFiClientSecure.h>
 
 class WiFiHandler
