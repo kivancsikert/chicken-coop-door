@@ -7,11 +7,15 @@ void WiFiHandler::begin() {
     }
 }
 
-void WiFiHandler::timedLoop() {
+bool WiFiHandler::timedLoop() {
     if (connecting) {
         awaitConnect();
-    } else if (!connected()) {
+        return false;
+    } else if (connected()) {
+        return true;
+    } else {
         startConnecting();
+        return false;
     }
 }
 

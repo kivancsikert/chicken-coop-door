@@ -28,7 +28,7 @@ private:
 };
 
 class TelemetryPublisher
-    : public TimedLoopable,
+    : public TimedLoopable<void>,
       private ConfigAware {
 public:
     TelemetryPublisher(const Config& config, MqttHandler& mqtt, TelemetryProvider& telemetryProvider)
@@ -52,6 +52,7 @@ protected:
         telemetryProvider.populateTelemetry(root);
         mqtt.publishTelemetry(doc);
     }
+    void defaultValue() override {}
 
 private:
     MqttHandler& mqtt;

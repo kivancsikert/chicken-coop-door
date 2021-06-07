@@ -4,7 +4,7 @@
 #include <functional>
 
 class SwitchHandler
-    : public TimedLoopable,
+    : public TimedLoopable<void>,
       public TelemetryProvider {
 public:
     SwitchHandler(const String& name, int pin, std::function<bool()> invertSwitch)
@@ -18,9 +18,10 @@ public:
         update();
     }
 
-    virtual void timedLoop() override {
+    void timedLoop() override {
         update();
     }
+    void defaultValue() override {}
 
     void update() {
         engaged = digitalRead(pin) ^ invertSwitch();

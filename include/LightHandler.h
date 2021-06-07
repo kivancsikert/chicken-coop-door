@@ -9,7 +9,7 @@
 #include <functional>
 
 class LightHandler
-    : public TimedLoopable,
+    : public TimedLoopable<void>,
       public TelemetryProvider,
       private ConfigAware {
 public:
@@ -52,6 +52,7 @@ protected:
         double averageLevel = sum / measurements.size();
         onUpdate(averageLevel);
     }
+    void defaultValue() override {}
 
 private:
     BH1750 sensor;

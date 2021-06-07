@@ -9,7 +9,7 @@
 #include <WiFiClientSecure.h>
 
 class WiFiHandler
-    : public TimedLoopable,
+    : public TimedLoopable<bool>,
       private ConfigAware {
 public:
     WiFiHandler(const Config& config, const String& hostname, const String& caCert)
@@ -32,7 +32,10 @@ protected:
     unsigned long getPeriodInMillis() override {
         return 500;
     }
-    void timedLoop() override;
+    bool timedLoop() override;
+    bool defaultValue() override {
+        return false;
+    }
 
 private:
     void startConnecting();

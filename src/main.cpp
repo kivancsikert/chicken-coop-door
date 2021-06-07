@@ -123,8 +123,7 @@ void loop() {
     openSwitch.loop();
     closedSwitch.loop();
     bool moving = door.loop();
-    wifi.loop();
-    if (wifi.connected()) {
+    if (wifi.loop()) {
         telemetryPublisher.loop();
         ntp.loop();
         mqtt.loop();
