@@ -26,6 +26,7 @@ void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) 
         message = "Door initialized; switches not engaged, closing";
         state = GateState::CLOSING;
     }
+    Serial.println(message);
 
     // Publish initial state
     onEvent([message](JsonObject& json) {
