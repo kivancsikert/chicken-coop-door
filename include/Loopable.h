@@ -8,20 +8,19 @@ public:
     virtual T loop() = 0;
 };
 
-template <class T>
 class TimedLoopable
-    : public Loopable<T> {
+    : public Loopable<void> {
 public:
-    T loop() override {
+    void loop() override {
         unsigned long currentTimeMillis = millis();
         if (currentTimeMillis - previousLoopMillis > getPeriodInMillis()) {
             previousLoopMillis = currentTimeMillis;
-            return timedLoop();
+            timedLoop();
         }
     }
 
 protected:
-    virtual T timedLoop() = 0;
+    virtual void timedLoop() = 0;
     virtual unsigned long getPeriodInMillis() = 0;
 
 private:
