@@ -22,7 +22,7 @@ public:
                     return;
                 }
                 Serial.println("Updating time from NTP");
-                configTime(0, 0, "pool.ntp.org");
+                configTime(0, 0, "time.google.com");
                 updateStarted = millis();
                 state = State::UPDATING;
                 break;
