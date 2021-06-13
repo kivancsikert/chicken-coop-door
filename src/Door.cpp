@@ -5,9 +5,9 @@
 void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
     this->onEvent = onEvent;
 
-    motor.setMaxSpeed(500);
-    motor.setSpeed(500);
-    motor.setAcceleration(500);
+    motor.setMaxSpeed(400);
+    motor.setSpeed(400);
+    motor.setAcceleration(100);
     Serial.println("Motor configured");
 
     // Set initial state
