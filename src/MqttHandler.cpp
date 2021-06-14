@@ -84,7 +84,7 @@ void MqttHandler::loop() {
 
     if (!mqttClient->connected()) {
         Serial.println("Connecting to MQTT...");
-        mqtt->mqttConnect();
+        mqtt->mqttConnectAsync();
     }
 
     mqtt->loop();
