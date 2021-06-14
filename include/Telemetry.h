@@ -18,6 +18,7 @@ public:
     }
 
     void populateTelemetry(JsonObject& json) override {
+        json["uptime"] = millis();
         for (auto& delegate : delegates) {
             delegate->populateTelemetry(json);
         }
