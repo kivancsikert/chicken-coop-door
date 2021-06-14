@@ -17,22 +17,22 @@ exports.statePublish = (event, context) => {
     (async () => {
         await webhook.send({
             icon_emoji: ':chicken:',
-            text: `${describeEvent(message.event)} \`\`\`${JSON.stringify(message)}\`\`\``,
+            text: `${describeEvent(message.event, deviceId)} \`\`\`${JSON.stringify(message)}\`\`\``,
         });
     })();
 };
 
-function describeEvent(event) {
+function describeEvent(event, deviceId) {
     if (event.hasOwnProperty("init")) {
-        return "Initialized";
+        return `Initialized *${deviceId}*.`;
     } else if (event.hasOwnProperty("emergencyStop")) {
-        return "Emergency stop activated!";
+        return `Emergency stop activated on *${deviceId}*!`;
     } else if (event.hasOwnProperty("state")) {
-        return `The door is now *${describeState(event.state)}*.`;
+        return `The door is now *${describeState(event.state)}* on *${deviceId}*.`;
     } else if (event.hasOwnProperty("manualOverride")) {
-        return `Manual override is *${event.manualOverride ? "enabled" : "disabled"}*.`;
+        return `Manual override is *${event.manualOverride ? "enabled" : "disabled"}* on *${deviceId}*.`;
     } else {
-        return `Unknown event: \`${JSON.stringify(event)}\`.`;
+        return `Unknown event on *${deviceId}*: \`${JSON.stringify(event)}\`.`;
     }
 }
 
