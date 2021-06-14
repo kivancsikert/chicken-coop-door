@@ -15,13 +15,12 @@
 #include "SwitchHandler.h"
 #include "Telemetry.h"
 #include "WiFiHandler.h"
-#include "google-iot-root-cert.h"
 #include "version.h"
 
 FileSystemHandler fileSystem;
 Config config(fileSystem);
 OtaHandler ota;
-WiFiHandler wifi(config, "chickens", googleIoTRootCert);
+WiFiHandler wifi(config, "chickens");
 
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });

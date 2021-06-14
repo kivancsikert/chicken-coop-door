@@ -48,14 +48,9 @@ bool WiFiHandler::awaitConnect() {
 #if defined(ESP32)
         WiFi.setHostname(hostname.c_str());
         Serial.println(WiFi.getHostname());
-
-        client.setCACert(caCert.c_str());
 #elif defined(ESP8266)
         WiFi.hostname(hostname);
         Serial.println(WiFi.hostname());
-
-        // TODO Replace this with a non-deprecated variant
-        client.setCACert((const uint8_t*) caCert.c_str(), caCert.length());
 #endif
         // To allow accessing HTTPS content for updates
         client.setInsecure();

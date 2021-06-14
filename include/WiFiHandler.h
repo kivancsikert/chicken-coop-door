@@ -12,10 +12,9 @@ class WiFiHandler
     : public TimedLoopable<bool>,
       private ConfigAware {
 public:
-    WiFiHandler(const Config& config, const String& hostname, const String& caCert)
+    WiFiHandler(const Config& config, const String& hostname)
         : ConfigAware(config)
-        , hostname(hostname)
-        , caCert(caCert) {
+        , hostname(hostname) {
     }
 
     void begin();
@@ -43,7 +42,6 @@ private:
     bool awaitConnect();
 
     const String hostname;
-    const String caCert;
     WiFiClientSecure client;
 
     bool connecting = false;
