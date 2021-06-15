@@ -91,6 +91,10 @@ void setup() {
                 Serial.println("Setting door state to " + String(targetStateValue));
                 door.override(targetState);
             }
+            if (json.containsKey("resume")) {
+                Serial.println("Resuminmg normal operation");
+                door.resume();
+            }
             if (json.containsKey("update")) {
                 String url = json["update"];
                 httpUpdateHandler.update(url, VERSION);

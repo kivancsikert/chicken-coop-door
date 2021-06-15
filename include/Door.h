@@ -46,6 +46,10 @@ public:
         onEvent([](JsonObject& json) { json["manualOverride"] = true; });
         startMoving(state);
     }
+    void resume() {
+        this->manualOverride = false;
+        onEvent([](JsonObject& json) { json["manualOverride"] = false; });
+    }
     void lightChanged(float light);
     void populateTelemetry(JsonObject& json) override {
         json["manualOverride"] = manualOverride;
