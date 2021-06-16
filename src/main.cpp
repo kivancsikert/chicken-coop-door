@@ -45,6 +45,12 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
 
+#if defined(SIM800_POWER)
+    // Disable SIM800 module on LilyGo board
+    pinMode(SIM800_POWER, OUTPUT);
+    digitalWrite(SIM800_POWER, LOW);
+#endif
+
     while (!Serial) {
         delay(100);
     }
