@@ -24,7 +24,8 @@ public:
     void defaultValue() override {}
 
     void update() {
-        engaged = digitalRead(pin) ^ invertSwitch();
+        bool state = digitalRead(pin);
+        engaged = (state != invertSwitch());
     }
 
     unsigned long getPeriodInMillis() override {
