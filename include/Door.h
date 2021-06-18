@@ -2,8 +2,6 @@
 
 #include <AccelStepper.h>
 #include <ArduinoJson.h>
-#include <BH1750.h>
-#include <Wire.h>
 #include <functional>
 
 #include "Config.h"
