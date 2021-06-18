@@ -10,7 +10,8 @@ public:
     }
 
     void timedLoop() override {
-        if (millis() - lastChecked > 24 * 60 * 60 * 1000) {
+        if (state == State::UP_TO_DATE
+            && millis() - lastChecked > 24 * 60 * 60 * 1000) {
             state = State::NEEDS_UPDATE;
         }
         switch (state) {
@@ -41,7 +42,8 @@ public:
                 break;
         }
     }
-    void defaultValue() override {}
+    void defaultValue() override {
+    }
     unsigned long getPeriodInMillis() {
         return 500;
     }
