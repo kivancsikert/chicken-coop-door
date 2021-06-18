@@ -42,7 +42,6 @@ void fatalError(String message) {
 void setup() {
     Serial.begin(115200);
 
-    pinMode(LED_BUILTIN, OUTPUT);
     pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
 
 #if defined(SIM800_POWER)
