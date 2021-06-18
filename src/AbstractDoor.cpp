@@ -1,13 +1,9 @@
 #include "Door.h"
 
-#define STEPS_AT_ONCE 500
-
-void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
+void AbstractDoor::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
     this->onEvent = onEvent;
 
-    motor.setMaxSpeed(400);
-    motor.setSpeed(400);
-    motor.setAcceleration(100);
+    initializeMotor();
     Serial.println("Motor configured");
 
     // Set initial state
@@ -35,7 +31,7 @@ void Door::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) 
     });
 }
 
-void Door::lightChanged(float light) {
+void AbstractDoor::lightChanged(float light) {
     // Ignore light changes when in manual override mode
     if (manualOverride) {
         return;
@@ -49,13 +45,13 @@ void Door::lightChanged(float light) {
     }
 }
 
-bool Door::loop() {
+bool AbstractDoor::loop() {
     bool movementExpected = !emergencyStop
         && config.motorEnabled
-        && (motor.run() || state == GateState::OPENING || state == GateState::CLOSING);
+        && isMoving();
 
     if (!movementExpected) {
-        motor.disableOutputs();
+        disableMotor();
         return false;
     }
 
@@ -64,23 +60,15 @@ bool Door::loop() {
             Serial.println("Closed");
             stopMoving(GateState::CLOSED);
         } else {
-            advanceMotor(-STEPS_AT_ONCE);
+            continueMoving(GateState::CLOSING);
         }
     } else if (state == GateState::OPENING) {
         if (openSwitch.isEngaged()) {
             Serial.println("Open");
             stopMoving(GateState::OPEN);
         } else {
-            advanceMotor(STEPS_AT_ONCE);
+            continueMoving(GateState::OPENING);
         }
     }
     return true;
-}
-
-void Door::advanceMotor(long steps) {
-    if (millis() - movementStarted > config.movementTimeout) {
-        halt("Move timed out");
-        return;
-    }
-    motor.move(steps);
 }
