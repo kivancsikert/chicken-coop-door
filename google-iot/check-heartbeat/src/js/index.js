@@ -12,7 +12,7 @@ const firestore = new Firestore({
  * @param {object} res The HTTP response.
  */
 exports.checkHeartbeat = (req, res) => {
-    const now = Firestore.Timestamp.now();
+    const timeout = process.env.TIMEOUT * 1000;
     (async () => {
         await firestore
             .collection("heartbeats")
@@ -20,14 +20,16 @@ exports.checkHeartbeat = (req, res) => {
             .then((docs) => {
                 docs.forEach((doc) => {
                     const heartbeat = doc.get("heartbeat");
+                    const now = Firestore.Timestamp.now();
                     console.debug(`Processing ${doc.id} - comparing ${heartbeat.toMillis()} with ${now.toMillis()}...`);
 
-                    if (heartbeat.toMillis() < now.toMillis() - process.env.TIMEOUT * 1000) {
-                        console.log("Notifying Slack because we haven't seen a heartbeat for some time...");
+                    const difference = now.toMillis() - heartbeat.toMillis();
+                    if (difference > timeout) {
+                        console.log(`Notifying Slack because we haven't seen a heartbeat for ${difference} ms since ${heartbeat.toDate()}, timeout is ${timeout} ms...`);
                         (async () => {
                             await webhook.send({
                                 icon_emoji: ':chicken:',
-                                text: `No heartbeat for *${doc.id}*!`,
+                                text: `No heartbeat for *${doc.id}* for *${difference} ms* since *${heartbeat.toDate()}* (timeout is *${timeout} ms*).`,
                             });
                         })();
                     }
