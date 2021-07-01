@@ -1,6 +1,21 @@
 #pragma once
 
-#if defined(ESP32)
+#if defined(MK2)
+
+#define MOTOR_DIR GPIO_NUM_32
+#define MOTOR_STEP GPIO_NUM_33
+#define MOTOR_ENABLE GPIO_NUM_25
+#define MOTOR_FAULT GPIO_NUM_35
+
+#define LIGHT_SDA GPIO_NUM_19
+#define LIGHT_SCL GPIO_NUM_18
+
+#define OPEN_PIN GPIO_NUM_14
+#define CLOSED_PIN GPIO_NUM_12
+
+#define  RESET_BUTTON_PIN GPIO_NUM_34
+
+#elif defined(ESP32)
 
 #include "pins_arduino_ttgo_call.h"
 

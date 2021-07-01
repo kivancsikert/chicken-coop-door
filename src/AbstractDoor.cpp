@@ -3,9 +3,6 @@
 void AbstractDoor::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
     this->onEvent = onEvent;
 
-    initializeMotor();
-    Serial.println("Motor configured");
-
     // Set initial state
     String message;
     if (openSwitch.isEngaged()) {
