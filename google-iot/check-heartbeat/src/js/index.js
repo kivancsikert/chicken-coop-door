@@ -1,7 +1,7 @@
 const IncomingWebhook = require('@slack/webhook').IncomingWebhook;
 const webhook = new IncomingWebhook(process.env.SLACK_URL);
 
-const Firestore = require('@google-cloud/firestore');
+const { Firestore, Timestamp, FieldValue } = require('@google-cloud/firestore');
 const firestore = new Firestore({
     projectId: process.env.PROJECT_ID
 });
@@ -16,25 +16,38 @@ exports.checkHeartbeat = (req, res) => {
     (async () => {
         await firestore
             .collection("heartbeats")
-            .get()
-            .then((docs) => {
-                docs.forEach((doc) => {
-                    const heartbeat = doc.get("heartbeat");
-                    const now = Firestore.Timestamp.now();
-                    console.debug(`Processing ${doc.id} - comparing ${heartbeat.toMillis()} with ${now.toMillis()}...`);
+            .listDocuments()
+            .then((docRefs) => Promise.all(
+                docRefs.map((docRef) => docRef
+                    .get()
+                    .then(async (doc) => {
+                        const heartbeat = doc.get("heartbeat");
+                        const missingSince = doc.get("missingSince");
+                        const now = Timestamp.now();
+                        console.debug(`Processing ${doc.id} - comparing ${heartbeat.toMillis()} with ${now.toMillis()}...`);
 
-                    const difference = now.toMillis() - heartbeat.toMillis();
-                    if (difference > timeout) {
-                        console.log(`Notifying Slack because we haven't seen a heartbeat for ${difference} ms since ${heartbeat.toDate()}, timeout is ${timeout} ms...`);
-                        (async () => {
-                            await webhook.send({
-                                icon_emoji: ':chicken:',
-                                text: `No heartbeat for *${doc.id}* for *${difference} ms* since *${heartbeat.toDate()}* (timeout is *${timeout} ms*).`,
-                            });
-                        })();
-                    }
-                });
-            })
+                        const difference = now.toMillis() - heartbeat.toMillis();
+                        if (difference > timeout) {
+                            console.log(`Notifying Slack because we haven't seen a heartbeat for ${difference} ms since ${heartbeat.toDate()}, timeout is ${timeout} ms...`);
+                            await webhook
+                                .send({
+                                    icon_emoji: ':chicken:',
+                                    text: `No heartbeat for *${doc.id}* for *${difference / 1000} seconds* since *${heartbeat.toDate()}* (timeout is *${timeout / 1000} seconds*).`,
+                                });
+                            await doc.ref.update({ "missingSince": heartbeat });
+                        } else {
+                            if (missingSince !== undefined) {
+                                await webhook
+                                    .send({
+                                        icon_emoji: ':chicken:',
+                                        text: `Received fresh heartbeat for *${doc.id}* at *${heartbeat.toDate()}*.`,
+                                    });
+                                await doc.ref.update({ "missingSince": FieldValue.delete() });
+                            }
+                        }
+                    })
+                )
+            ))
             .then(() => {
                 res.send("OK");
             })
