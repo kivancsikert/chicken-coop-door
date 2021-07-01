@@ -53,7 +53,6 @@ public:
     }
 
 protected:
-    virtual void initializeMotor() = 0;
     virtual void stopMotor() = 0;
     virtual void disableMotor() = 0;
 
@@ -85,7 +84,7 @@ protected:
     /**
      * Starts to move the motor towards opening or closing.
      */
-    void startMoving(GateState state) {
+    virtual void startMoving(GateState state) {
         movementStarted = millis();
         setState(state);
     }

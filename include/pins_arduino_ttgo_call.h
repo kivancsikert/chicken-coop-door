@@ -28,6 +28,8 @@ static const uint8_t LED_BUILTIN = 12;
 #define SIM800_POWER 23
 
 static const uint8_t LED_BUILTIN = 13;
+#else
+#error "Define SIM800C or SIM800L"
 #endif
 
 #define BUILTIN_LED  LED_BUILTIN // backward compatibility

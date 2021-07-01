@@ -16,6 +16,10 @@ public:
     SimpleDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
         : AbstractDoor(config, openSwitch, closedSwitch)
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
+        motor.setMaxSpeed(400);
+        motor.setSpeed(400);
+        motor.setAcceleration(100);
+        Serial.println("Motor configured");
     }
 
     void moveTo(long position) override {
@@ -28,12 +32,6 @@ public:
     }
 
 protected:
-    void initializeMotor() override {
-        motor.setMaxSpeed(400);
-        motor.setSpeed(400);
-        motor.setAcceleration(100);
-    }
-
     bool isMoving() override {
         return motor.run() || AbstractDoor::isMoving();
     }
@@ -66,10 +64,5 @@ protected:
     }
 
 private:
-    /**
-     * Advances the motor in the given direction.
-     */
-    void advanceMotor(long steps);
-
     AccelStepper motor;
 };
