@@ -1,7 +1,7 @@
 const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 
-const Firestore = require('@google-cloud/firestore');
+const { Firestore } = require('@google-cloud/firestore');
 const firestore = new Firestore({
   projectId: process.env.PROJECT_ID
 });
@@ -35,6 +35,8 @@ exports.galagonyaPublish = (event, context) => {
       .doc(`heartbeats/${deviceId}`)
       .set({
         heartbeat: now
+      }, {
+          merge: true
       });
   })();
 };
