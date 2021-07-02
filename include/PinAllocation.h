@@ -9,13 +9,22 @@
 #define MOTOR_PIN3 GPIO_NUM_18
 #define MOTOR_PIN4 GPIO_NUM_5
 
+#if defined(MK1)
+// The original with 5V stepper motor
 #define LIGHT_SDA GPIO_NUM_15
 #define LIGHT_SCL GPIO_NUM_13
+#elif defined(MK3)
+// Updated with 12V stepper and light sensor on default I2C PINs
+#define LIGHT_SDA GPIO_NUM_21
+#define LIGHT_SCL GPIO_NUM_22
+#else
+#error "Please define MK1 or MK3 for ESP32"
+#endif
 
 #define OPEN_PIN GPIO_NUM_14
 #define CLOSED_PIN GPIO_NUM_12
 
-#define  RESET_BUTTON_PIN GPIO_NUM_2
+#define RESET_BUTTON_PIN GPIO_NUM_2
 
 #elif defined(ESP8266)
 

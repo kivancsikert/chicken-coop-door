@@ -18,6 +18,7 @@ public:
     }
 
     void begin(int sda, int scl) {
+        Serial.printf("Initializing I2C for light sensor, SDA = %d, SCL = %d\n", sda, scl);
         Wire.begin(sda, scl);
         if (sensor.begin(BH1750::CONTINUOUS_LOW_RES_MODE)) {
             Serial.println("Light sensor initialised");
