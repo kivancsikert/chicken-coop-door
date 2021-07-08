@@ -12,7 +12,7 @@ public:
     void timedLoop() override {
         switch (state) {
             case State::UP_TO_DATE:
-                if (millis() - lastChecked > 24 * 60 * 60 * 1000) {
+                if (millis() - lastChecked > 7 * 24 * 60 * 60 * 1000) {
                     state = State::NEEDS_UPDATE;
                 }
                 break;
