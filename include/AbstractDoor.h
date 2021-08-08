@@ -22,10 +22,10 @@ class AbstractDoor
       protected ConfigAware,
       protected Loopable<bool> {
 public:
-    AbstractDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
+    AbstractDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closeSwitch)
         : ConfigAware(config)
         , openSwitch(openSwitch)
-        , closedSwitch(closedSwitch) {
+        , closeSwitch(closeSwitch) {
     }
 
     void begin(std::function<bool(std::function<void(JsonObject&)>)> onEvent);
@@ -59,7 +59,7 @@ protected:
     virtual void disableMotor() = 0;
 
     SwitchHandler& openSwitch;
-    SwitchHandler& closedSwitch;
+    SwitchHandler& closeSwitch;
 
     std::function<bool(std::function<void(JsonObject&)>)> onEvent;
 

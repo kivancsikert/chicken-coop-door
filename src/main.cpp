@@ -24,13 +24,13 @@ WiFiHandler wifi(config, "chickens");
 
 LightHandler light(config);
 SwitchHandler openSwitch("openSwitch", OPEN_PIN, []() { return config.invertOpenSwitch; });
-SwitchHandler closedSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
-Door door(config, openSwitch, closedSwitch);
+SwitchHandler closeSwitch("closedSwitch", CLOSED_PIN, []() { return config.invertCloseSwitch; });
+Door door(config, openSwitch, closeSwitch);
 
 NtpHandler ntp(wifi);
 MqttHandler mqtt(wifi, ntp);
 HttpUpdateHandler httpUpdateHandler(wifi);
-CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closedSwitch, &door });
+CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closeSwitch, &door });
 TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
 
 void fatalError(String message) {
@@ -108,7 +108,7 @@ void setup() {
 
     light.begin(LIGHT_SDA, LIGHT_SCL);
     openSwitch.begin();
-    closedSwitch.begin();
+    closeSwitch.begin();
     door.begin([](std::function<void(JsonObject&)> populateEvent) {
         DynamicJsonDocument doc(2048);
         JsonObject root = doc.to<JsonObject>();
@@ -129,7 +129,7 @@ void loop() {
     ota.loop();
     light.loop();
     openSwitch.loop();
-    closedSwitch.loop();
+    closeSwitch.loop();
     bool moving = door.loop();
     if (wifi.loop()) {
         telemetryPublisher.loop();

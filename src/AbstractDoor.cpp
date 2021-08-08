@@ -9,13 +9,13 @@ void AbstractDoor::begin(std::function<bool(std::function<void(JsonObject&)>)> o
     // Set initial state
     String message;
     if (openSwitch.isEngaged()) {
-        if (closedSwitch.isEngaged()) {
+        if (closeSwitch.isEngaged()) {
             halt("Both open and close switches are engaged");
             return;
         }
         message = "Door initialized in open state";
         state = GateState::OPEN;
-    } else if (closedSwitch.isEngaged()) {
+    } else if (closeSwitch.isEngaged()) {
         message = "Door initialized in closed state";
         state = GateState::CLOSED;
     } else {
@@ -62,7 +62,7 @@ bool AbstractDoor::loop() {
     }
 
     if (state == GateState::CLOSING) {
-        if (closedSwitch.isEngaged()) {
+        if (closeSwitch.isEngaged()) {
             Serial.println("Closed");
             stopMoving(GateState::CLOSED);
         } else {
