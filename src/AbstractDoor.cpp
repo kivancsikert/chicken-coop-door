@@ -1,6 +1,6 @@
 #include "Door.h"
 
-void AbstractDoor::begin(std::function<void(std::function<void(JsonObject&)>)> onEvent) {
+void AbstractDoor::begin(std::function<bool(std::function<void(JsonObject&)>)> onEvent) {
     this->onEvent = onEvent;
 
     initializeMotor();
@@ -46,6 +46,12 @@ void AbstractDoor::lightChanged(float light) {
 }
 
 bool AbstractDoor::loop() {
+    if (state != reportedState) {
+        if (onEvent([this](JsonObject& json) { json["state"] = static_cast<int>(state); })) {
+            reportedState = state;
+        }
+    }
+
     bool movementExpected = !emergencyStop
         && config.motorEnabled
         && isMoving();
