@@ -12,6 +12,7 @@
 enum class GateState {
     CLOSED = -2,
     CLOSING = -1,
+    UNKNOWN = 0,
     OPENING = 1,
     OPEN = 2
 };
@@ -21,13 +22,13 @@ class AbstractDoor
       protected ConfigAware,
       protected Loopable<bool> {
 public:
-    AbstractDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
+    AbstractDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closeSwitch)
         : ConfigAware(config)
         , openSwitch(openSwitch)
-        , closedSwitch(closedSwitch) {
+        , closeSwitch(closeSwitch) {
     }
 
-    void begin(std::function<void(std::function<void(JsonObject&)>)> onEvent);
+    void begin(std::function<bool(std::function<void(JsonObject&)>)> onEvent);
 
     /**
      * Loops the door, and returns whether the door is currently moving.
@@ -58,14 +59,19 @@ protected:
     virtual void disableMotor() = 0;
 
     SwitchHandler& openSwitch;
-    SwitchHandler& closedSwitch;
+    SwitchHandler& closeSwitch;
 
-    std::function<void(std::function<void(JsonObject&)>)> onEvent;
+    std::function<bool(std::function<void(JsonObject&)>)> onEvent;
 
     /**
      * The state of the gate.
      */
-    GateState state;
+    GateState state = GateState::UNKNOWN;
+
+    /**
+     * The state we last reported.
+     */
+    GateState reportedState = GateState::UNKNOWN;
 
     /**
      * Ignore light levels, and keep open or closed until further notice.
@@ -79,7 +85,6 @@ protected:
 
     void setState(GateState state) {
         this->state = state;
-        onEvent([state](JsonObject& json) { json["state"] = static_cast<int>(state); });
     }
 
     /**

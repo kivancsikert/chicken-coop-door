@@ -90,30 +90,32 @@ void MqttHandler::loop() {
     mqtt->loop();
 }
 
-void MqttHandler::publishStatus(const JsonDocument& json) {
+bool MqttHandler::publishStatus(const JsonDocument& json) {
     if (mqttClient == nullptr || !mqttClient->connected()) {
-        return;
+        return false;
     }
     String payload;
     serializeJson(json, payload);
-    mqtt->publishTelemetry("/status", payload);
+    bool success = mqtt->publishTelemetry("/status", payload);
 #ifdef DUMP_MQTT
     Serial.print("Published status: ");
     serializeJsonPretty(json, Serial);
     Serial.println();
 #endif
+    return success;
 }
 
-void MqttHandler::publishTelemetry(const JsonDocument& json) {
+bool MqttHandler::publishTelemetry(const JsonDocument& json) {
     if (mqttClient == nullptr || !mqttClient->connected()) {
-        return;
+        return false;
     }
     String payload;
     serializeJson(json, payload);
-    mqtt->publishTelemetry(payload);
+    bool success = mqtt->publishTelemetry(payload);
 #ifdef DUMP_MQTT
     Serial.print("Published telemetry: ");
     serializeJsonPretty(json, Serial);
     Serial.println();
 #endif
+    return success;
 }

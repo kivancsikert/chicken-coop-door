@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Loopable.h"
+#include <FunctionalInterrupt.h>
 #include <functional>
 
 class SwitchHandler
-    : public TimedLoopable<void>,
-      public TelemetryProvider {
+    : public TelemetryProvider {
 public:
     SwitchHandler(const String& name, int pin, std::function<bool()> invertSwitch)
         : name(name)
@@ -15,30 +15,21 @@ public:
     }
 
     void begin() {
-        update();
-    }
-
-    void timedLoop() override {
-        update();
-    }
-    void defaultValue() override {}
-
-    void update() {
-        bool state = digitalRead(pin);
-        engaged = (state != invertSwitch());
-    }
-
-    unsigned long getPeriodInMillis() override {
-        // TODO Make this configurable
-        return 100;
+        state = digitalRead(pin);
+        attachInterrupt(digitalPinToInterrupt(pin), [this]() {
+            state = true;
+        }, RISING);
+        attachInterrupt(digitalPinToInterrupt(pin), [this]() {
+            state = false;
+        }, FALLING);
     }
 
     void populateTelemetry(JsonObject& json) override {
-        json[name] = engaged;
+        json[name] = isEngaged();
     }
 
     bool isEngaged() {
-        return engaged;
+        return state != invertSwitch();
     }
 
 private:
@@ -46,5 +37,5 @@ private:
     const int pin;
     const std::function<bool()> invertSwitch;
 
-    bool engaged;
+    volatile bool state;
 };

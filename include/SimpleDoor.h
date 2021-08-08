@@ -13,8 +13,8 @@ class SimpleDoor
     : public AbstractDoor {
 
 public:
-    SimpleDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closedSwitch)
-        : AbstractDoor(config, openSwitch, closedSwitch)
+    SimpleDoor(const Config& config, SwitchHandler& openSwitch, SwitchHandler& closeSwitch)
+        : AbstractDoor(config, openSwitch, closeSwitch)
         , motor(AccelStepper::FULL4WIRE, MOTOR_PIN1, MOTOR_PIN3, MOTOR_PIN2, MOTOR_PIN4) {
     }
 
