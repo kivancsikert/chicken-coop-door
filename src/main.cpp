@@ -128,8 +128,6 @@ void setup() {
 void loop() {
     ota.loop();
     light.loop();
-    openSwitch.loop();
-    closeSwitch.loop();
     bool moving = door.loop();
     if (wifi.loop()) {
         telemetryPublisher.loop();
