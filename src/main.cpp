@@ -66,15 +66,15 @@ void setup() {
     wifi.begin();
     ota.begin("chickens");
 
-    File iotConfigFile = fileSystem.getFS().open("/iot-config.json", FILE_READ);
-    DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
-    DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
+    File mqttConfigFile = fileSystem.getFS().open("/mqtt-config.json", FILE_READ);
+    DynamicJsonDocument mqttConfigJson(mqttConfigFile.size() * 2);
+    DeserializationError error = deserializeJson(mqttConfigJson, mqttConfigFile);
     if (error) {
-        fatalError("Failed to read IoT config file: " + String(error.c_str()));
+        fatalError("Failed to read MQTT config file at /mqtt-config.json: " + String(error.c_str()));
         return;
     }
     mqtt.begin(
-        iotConfigJson,
+        mqttConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
             config.store();
