@@ -10,7 +10,7 @@ See [Galagonya Kert dashboards on MotherHen](https://motherhen.kertkaland.com/gr
 
 -   Place `data/mqtt-config.json` with the following contents used to access the MQTT server:
 
-    ```json
+    ```jsonc
     {
         "host": "broker",                 // MQTT broker host name
         "port": 1883,                     // MQTT broker port
