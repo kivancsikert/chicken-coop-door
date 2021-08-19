@@ -21,8 +21,8 @@ public:
 
     void begin(
         const JsonDocument& mqttConfig,
-        std::function<void(JsonDocument&)> onConfigChange,
-        std::function<void(JsonDocument&)> onCommand);
+        std::function<void(const JsonDocument&)> onConfigChange,
+        std::function<void(const JsonDocument&)> onCommand);
     void loop() override;
 
     bool publishStatus(const JsonDocument& json);
@@ -30,19 +30,14 @@ public:
 
 private:
     bool publish(const String& topic, const JsonDocument& json);
+    bool subscribe(const String& topic, int qos);
 
-    String host;
-    int port;
     String clientId;
     String prefix;
 
-    MQTTClient* mqttClient;
-
-    std::function<void(JsonDocument&)> onConfigChange;
-    std::function<void(JsonDocument&)> onCommand;
-
     WiFiHandler& wifiHandler;
     NtpHandler& ntpHandler;
+    MQTTClient mqttClient;
 
     // See https://cloud.google.com/iot/docs/how-tos/exponential-backoff
     int __backoff__ = 1000;    // current backoff, milliseconds
