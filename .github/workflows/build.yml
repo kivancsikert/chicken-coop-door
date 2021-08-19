@@ -27,4 +27,4 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install --upgrade platformio
             - name: Run PlatformIO
-              run: pio run --environment esp32 --environment nodemcuv2
+              run: pio run --environment nodemcuv2 --environment mk1 --environment mk3
