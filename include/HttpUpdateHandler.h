@@ -13,6 +13,7 @@ class HttpUpdateHandler {
 public:
     HttpUpdateHandler(WiFiHandler& wifi)
         : wifi(wifi) {
+        httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     }
 
     void update(const String& url, const String& version) {
