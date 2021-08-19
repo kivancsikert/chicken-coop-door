@@ -1,11 +1,8 @@
 #include "MqttHandler.h"
 
-MqttHandler* instance;
-
 MqttHandler::MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler)
     : wifiHandler(wifiHandler)
     , ntpHandler(ntpHandler) {
-    instance = this;
 }
 
 void MqttHandler::begin(
