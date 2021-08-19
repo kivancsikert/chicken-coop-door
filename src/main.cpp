@@ -84,25 +84,23 @@ void setup() {
             if (json.containsKey("restart")) {
                 Serial.println("Restart command received, restarting");
                 ESP.restart();
-            }
-            if (json.containsKey("moveTo")) {
+            } else if (json.containsKey("moveTo")) {
                 long targetPosition = json["moveTo"];
                 Serial.println("Moving door to " + String(targetPosition));
                 door.moveTo(targetPosition);
-            }
-            if (json.containsKey("override")) {
+            } else if (json.containsKey("override")) {
                 int targetStateValue = json["override"];
                 GateState targetState = static_cast<GateState>(targetStateValue);
                 Serial.println("Setting door state to " + String(targetStateValue));
                 door.override(targetState);
-            }
-            if (json.containsKey("resume")) {
+            } else if (json.containsKey("resume")) {
                 Serial.println("Resuminmg normal operation");
                 door.resume();
-            }
-            if (json.containsKey("update")) {
+            } else if (json.containsKey("update")) {
                 String url = json["update"];
                 httpUpdateHandler.update(url, VERSION);
+            } else {
+                Serial.println("Unknown command");
             }
         });
 

@@ -33,8 +33,10 @@ void MqttHandler::begin(
         deserializeJson(json, payload);
         if (topic.endsWith("/config")) {
             onConfigChange(json);
-        } else if (topic.endsWith("/commands")) {
+        } else if (topic.endsWith("/command")) {
             onCommand(json);
+        } else {
+            Serial.printf("Unknown topic: '%s'\n", topic.c_str());
         }
     });
     mqttClient.begin(wifiHandler.getClient());
@@ -91,7 +93,7 @@ void MqttHandler::loop() {
         // Set QoS to 1 (ack) for configuration messages
         subscribe("config", 1);
         // QoS 0 (no ack) for commands
-        subscribe("commands/#", 0);
+        subscribe("command", 0);
     }
 
     mqttClient.loop();
