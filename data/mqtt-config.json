@@ -1,6 +1,0 @@
-{
-    "host": "barn",
-    "port": 1883,
-    "clientId": "chicken-door",
-    "prefix": "devices/chicken-door"
-}
