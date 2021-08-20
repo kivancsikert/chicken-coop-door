@@ -2,8 +2,6 @@
 
 #include <ArduinoJson.h>
 #include <Client.h>
-#include <CloudIoTCore.h>
-#include <CloudIoTCoreMqtt.h>
 #include <MQTT.h>
 #include <functional>
 
@@ -22,34 +20,29 @@ public:
     MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler);
 
     void begin(
-        const JsonDocument& config,
-        std::function<void(JsonDocument&)> onConfigChange,
-        std::function<void(JsonDocument&)> onCommand);
+        const JsonDocument& mqttConfig,
+        std::function<void(const JsonDocument&)> onConfigChange,
+        std::function<void(const JsonDocument&)> onCommand);
     void loop() override;
 
     bool publishStatus(const JsonDocument& json);
     bool publishTelemetry(const JsonDocument& json);
 
 private:
-    String getJwt();
-    friend String getJwt();
+    bool publish(const String& topic, const JsonDocument& json);
+    bool subscribe(const String& topic, int qos);
 
-    void messageReceived(const String& topic, const String& payload);
-    friend void messageReceived(String& topic, String& payload);
-
-    String projectId;
-    String location;
-    String registryId;
-    String deviceId;
-    String privateKey;
-
-    MQTTClient* mqttClient;
-    CloudIoTCoreMqtt* mqtt;
-    CloudIoTCoreDevice* device;
-
-    std::function<void(JsonDocument&)> onConfigChange;
-    std::function<void(JsonDocument&)> onCommand;
+    String clientId;
+    String prefix;
 
     WiFiHandler& wifiHandler;
     NtpHandler& ntpHandler;
+    MQTTClient mqttClient;
+
+    // See https://cloud.google.com/iot/docs/how-tos/exponential-backoff
+    int __backoff__ = 1000;    // current backoff, milliseconds
+    static const int __factor__ = 2.5f;
+    static const int __minbackoff__ = 1000;      // minimum backoff, ms
+    static const int __max_backoff__ = 60000;    // maximum backoff, ms
+    static const int __jitter__ = 500;           // max random jitter, ms
 };

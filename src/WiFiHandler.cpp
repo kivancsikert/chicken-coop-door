@@ -53,7 +53,7 @@ bool WiFiHandler::awaitConnect() {
         Serial.println(WiFi.hostname());
 #endif
         // To allow accessing HTTPS content for updates
-        client.setInsecure();
+        secureClient.setInsecure();
         return true;
     }
 

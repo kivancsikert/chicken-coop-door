@@ -1,60 +1,49 @@
 #include "MqttHandler.h"
 
-MqttHandler* instance;
-
 MqttHandler::MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler)
     : wifiHandler(wifiHandler)
-    , ntpHandler(ntpHandler) {
-    instance = this;
-}
-
-String getJwt() {
-    return instance->getJwt();
-}
-
-// The MQTT callback function for commands and configuration updates
-void messageReceived(String& topic, String& payload) {
-    instance->messageReceived(topic, payload);
+    , ntpHandler(ntpHandler)
+    , mqttClient(MQTT_BUFFER_SIZE) {
 }
 
 void MqttHandler::begin(
-    const JsonDocument& config,
-    std::function<void(JsonDocument&)> onConfigChange,
-    std::function<void(JsonDocument&)> onCommand) {
+    const JsonDocument& mqttConfig,
+    std::function<void(const JsonDocument&)> onConfigChange,
+    std::function<void(const JsonDocument&)> onCommand) {
+
     Serial.println("Initializing MQTT connector...");
-    this->onConfigChange = onConfigChange;
-    this->onCommand = onCommand;
 
-    projectId = config["projectId"].as<String>();
-    location = config["location"].as<String>();
-    registryId = config["registryId"].as<String>();
-    deviceId = config["deviceId"].as<String>();
-    privateKey = config["privateKey"].as<String>();
-}
+    String host = mqttConfig["host"].as<String>();
+    int port = mqttConfig["port"].as<int>();
+    clientId = mqttConfig["clientId"].as<String>();
+    prefix = mqttConfig["prefix"].as<String>();
 
-String MqttHandler::getJwt() {
-    time_t iss = time(nullptr);
-    // Serial.println("Refreshing JWT");
-    String jwt = device->createJWT(iss, JWT_EXPIRATION_IN_SECONDS);
-    // Serial.println(jwt);
-    return jwt;
-}
+    Serial.printf("MQTT broker at '%s:%d', using client id '%s'\n",
+        host.c_str(), port, clientId.c_str());
 
-void MqttHandler::messageReceived(const String& topic, const String& payload) {
+    mqttClient.setHost(host.c_str(), port);
+    mqttClient.setKeepAlive(180);
+    mqttClient.setCleanSession(true);
+    mqttClient.setTimeout(10000);
+    mqttClient.onMessage([onConfigChange, onCommand](String& topic, String& payload) {
 #ifdef DUMP_MQTT
-    Serial.println("Received '" + topic + "' (size: " + payload.length() + "): " + payload);
+        Serial.println("Received '" + topic + "' (size: " + payload.length() + "): " + payload);
 #endif
-    DynamicJsonDocument json(payload.length() * 2);
-    deserializeJson(json, payload);
-    if (topic.endsWith("/config")) {
-        onConfigChange(json);
-    } else if (topic.endsWith("/commands")) {
-        onCommand(json);
-    }
+        DynamicJsonDocument json(payload.length() * 2);
+        deserializeJson(json, payload);
+        if (topic.endsWith("/config")) {
+            onConfigChange(json);
+        } else if (topic.endsWith("/command")) {
+            onCommand(json);
+        } else {
+            Serial.printf("Unknown topic: '%s'\n", topic.c_str());
+        }
+    });
+    mqttClient.begin(wifiHandler.getClient());
 }
 
 void MqttHandler::loop() {
-    if (mqtt == nullptr) {
+    if (!mqttClient.connected()) {
         if (!wifiHandler.connected()) {
             Serial.println("Couldn't connect to MQTT because WIFI is down");
             return;
@@ -65,57 +54,89 @@ void MqttHandler::loop() {
             return;
         }
 
-        Serial.println("Using Google Cloud device '" + deviceId + "' on project '" + projectId + "' in '" + location + "' in registry '" + registryId + "'\n");
-        device = new CloudIoTCoreDevice(projectId.c_str(), location.c_str(), registryId.c_str(), deviceId.c_str(), privateKey.c_str());
+        __backoff__ = __minbackoff__;
+        while (true) {
+            Serial.print("Connecting to MQTT...");
 
-        mqttClient = new MQTTClient(MQTT_BUFFER_SIZE);
-        mqttClient->setOptions(
-            180,     // keepAlive
-            true,    // cleanSession
-            10000    // timeout
-        );
-        mqtt = new CloudIoTCoreMqtt(mqttClient, &wifiHandler.getClient(), device);
-        mqtt->setLogConnect(false);
-#ifdef USE_GOOGLE_LTS_DOMAIN
-        mqtt->setUseLts(true);
-#endif
-        mqtt->startMQTT();
+            bool result = mqttClient.connect(clientId.c_str());
+
+            if (mqttClient.lastError() != LWMQTT_SUCCESS && result) {
+                Serial.printf("MQTT connection problem, error = %d (check lwmqtt_err_t), return code = %d (check lwmqtt_return_code_t)\n",
+                    mqttClient.lastError(), mqttClient.returnCode());
+
+                // See https://cloud.google.com/iot/docs/how-tos/exponential-backoff
+                if (__backoff__ < __minbackoff__) {
+                    __backoff__ = __minbackoff__;
+                }
+                __backoff__ = (__backoff__ * __factor__) + random(__jitter__);
+                if (__backoff__ > __max_backoff__) {
+                    __backoff__ = __max_backoff__;
+                }
+
+                // Clean up the client
+                mqttClient.disconnect();
+                Serial.println(" delaying " + String(__backoff__) + "ms");
+                delay(__backoff__);
+            } else {
+                if (!mqttClient.connected()) {
+                    Serial.println(" could not connect to MQTT, let's retry later...");
+                    mqttClient.disconnect();
+                    delay(__max_backoff__);
+                } else {
+                    // We're now connected
+                    Serial.println(" connected");
+                    break;
+                }
+            }
+        }
+
+        // Set QoS to 1 (ack) for configuration messages
+        subscribe("config", 1);
+        // QoS 0 (no ack) for commands
+        subscribe("command", 0);
     }
 
-    if (!mqttClient->connected()) {
-        Serial.println("Connecting to MQTT...");
-        mqtt->mqttConnectAsync();
-    }
-
-    mqtt->loop();
+    mqttClient.loop();
 }
 
 bool MqttHandler::publishStatus(const JsonDocument& json) {
-    if (mqttClient == nullptr || !mqttClient->connected()) {
-        return false;
-    }
-    String payload;
-    serializeJson(json, payload);
-    bool success = mqtt->publishTelemetry("/status", payload);
-#ifdef DUMP_MQTT
-    Serial.print("Published status: ");
-    serializeJsonPretty(json, Serial);
-    Serial.println();
-#endif
-    return success;
+    return publish("status", json);
 }
 
 bool MqttHandler::publishTelemetry(const JsonDocument& json) {
-    if (mqttClient == nullptr || !mqttClient->connected()) {
+    return publish("events", json);
+}
+
+bool MqttHandler::publish(const String& topic, const JsonDocument& json) {
+    if (!mqttClient.connected()) {
         return false;
     }
-    String payload;
-    serializeJson(json, payload);
-    bool success = mqtt->publishTelemetry(payload);
+    String fullTopic = prefix + "/" + topic;
 #ifdef DUMP_MQTT
-    Serial.print("Published telemetry: ");
+    Serial.printf("Publishing to MQTT topic '%s': ", fullTopic.c_str());
     serializeJsonPretty(json, Serial);
     Serial.println();
 #endif
+    String payload;
+    serializeJson(json, payload);
+    bool success = mqttClient.publish(fullTopic, payload.c_str());
+    if (!success) {
+        Serial.printf("Error publishing to MQTT topic at '%s', error = %d\n",
+            fullTopic.c_str(), mqttClient.lastError());
+    }
+    return success;
+}
+
+bool MqttHandler::subscribe(const String& topic, int qos) {
+    if (!mqttClient.connected()) {
+        return false;
+    }
+    String fullTopic = prefix + "/" + topic;
+    Serial.printf("Subscribing to MQTT topic '%s' with QOS = %d\n", fullTopic.c_str(), qos);
+    bool success = mqttClient.subscribe(fullTopic.c_str(), qos);
+    if (!success) {
+        Serial.printf("Error subscribing to MQTT topic '%s', error = %d\n",
+            fullTopic.c_str(), mqttClient.lastError());
+    }
     return success;
 }

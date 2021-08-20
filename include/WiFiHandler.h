@@ -23,8 +23,12 @@ public:
         return WiFi.status() == WL_CONNECTED;
     }
 
-    WiFiClientSecure& getClient() {
+    WiFiClient& getClient() {
         return client;
+    }
+
+    WiFiClientSecure& getSecureClient() {
+        return secureClient;
     }
 
 protected:
@@ -42,7 +46,8 @@ private:
     bool awaitConnect();
 
     const String hostname;
-    WiFiClientSecure client;
+    WiFiClient client;
+    WiFiClientSecure secureClient;
 
     bool connecting = false;
     unsigned long connectionStarted;

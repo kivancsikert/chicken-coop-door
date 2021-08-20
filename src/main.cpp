@@ -66,15 +66,15 @@ void setup() {
     wifi.begin();
     ota.begin("chickens");
 
-    File iotConfigFile = fileSystem.getFS().open("/iot-config.json", FILE_READ);
-    DynamicJsonDocument iotConfigJson(iotConfigFile.size() * 2);
-    DeserializationError error = deserializeJson(iotConfigJson, iotConfigFile);
+    File mqttConfigFile = fileSystem.getFS().open("/mqtt-config.json", FILE_READ);
+    DynamicJsonDocument mqttConfigJson(mqttConfigFile.size() * 2);
+    DeserializationError error = deserializeJson(mqttConfigJson, mqttConfigFile);
     if (error) {
-        fatalError("Failed to read IoT config file: " + String(error.c_str()));
+        fatalError("Failed to read MQTT config file at /mqtt-config.json: " + String(error.c_str()));
         return;
     }
     mqtt.begin(
-        iotConfigJson,
+        mqttConfigJson,
         [](const JsonDocument& json) {
             config.update(json);
             config.store();
@@ -84,25 +84,23 @@ void setup() {
             if (json.containsKey("restart")) {
                 Serial.println("Restart command received, restarting");
                 ESP.restart();
-            }
-            if (json.containsKey("moveTo")) {
+            } else if (json.containsKey("moveTo")) {
                 long targetPosition = json["moveTo"];
                 Serial.println("Moving door to " + String(targetPosition));
                 door.moveTo(targetPosition);
-            }
-            if (json.containsKey("override")) {
+            } else if (json.containsKey("override")) {
                 int targetStateValue = json["override"];
                 GateState targetState = static_cast<GateState>(targetStateValue);
                 Serial.println("Setting door state to " + String(targetStateValue));
                 door.override(targetState);
-            }
-            if (json.containsKey("resume")) {
+            } else if (json.containsKey("resume")) {
                 Serial.println("Resuminmg normal operation");
                 door.resume();
-            }
-            if (json.containsKey("update")) {
+            } else if (json.containsKey("update")) {
                 String url = json["update"];
                 httpUpdateHandler.update(url, VERSION);
+            } else {
+                Serial.println("Unknown command");
             }
         });
 

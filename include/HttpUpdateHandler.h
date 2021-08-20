@@ -18,7 +18,7 @@ public:
 
     void update(const String& url, const String& version) {
         Serial.printf("Updating from version %s via URL %s\n", version.c_str(), url.c_str());
-        WiFiClientSecure& client = wifi.getClient();
+        WiFiClientSecure& client = wifi.getSecureClient();
         HTTPUpdateResult result = httpUpdate.update(client, url, version);
         switch (result) {
             case HTTP_UPDATE_FAILED:

@@ -4,24 +4,19 @@
 
 ## Dashboard
 
-See [Galagonya Kert dashboards on Google Data Studio](https://datastudio.google.com/u/0/explorer/2f1ac65f-5839-4393-8eb5-25d90e34bad6).
+See [Galagonya Kert dashboards on MotherHen](https://motherhen.kertkaland.com/grafana/).
 
 ## Building
 
-* Place `data/iot-config.json` with the following contents used to access Google Cloud IoT Core:
+-   Place `data/mqtt-config.json` with the following contents used to access the MQTT server:
 
-    ```json
+    ```jsonc
     {
-        "projectId": "<project>",
-        "location": "<location>",
-        "registryId": "<registry>",
-        "deviceId": "<device>",
-        "privateKey": "6e:b8:17:35:c7:fc:6b:d7:a9:cb:cb:49:7f:a0:67:63:38:b0:90:57:57:e0:c0:9a:e8:6f:06:0c:d9:ee:31:41"
+        "host": "broker",                 // MQTT broker host name
+        "port": 1883,                     // MQTT broker port
+        "clientId": "chicken-door",       // MQTT client ID
+        "prefix": "devices/chicken-door"  // MQTT prefix
     }
     ```
 
-    Private key must be exactly 32 bytes, pad front with `00:` if necessary.
-
-    More info on how to create the private key is here: https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino#quickstart
-
-* Deploy file system image.
+-   Deploy file system image.
