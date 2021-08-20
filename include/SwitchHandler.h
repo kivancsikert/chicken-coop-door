@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Loopable.h"
+#include "Telemetry.h"
 
 class SwitchHandler
     : public TelemetryProvider {
