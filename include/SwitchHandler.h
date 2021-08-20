@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Loopable.h"
-#include <FunctionalInterrupt.h>
-#include <functional>
 
 class SwitchHandler
     : public TelemetryProvider {
@@ -15,13 +13,6 @@ public:
     }
 
     void begin() {
-        state = digitalRead(pin);
-        attachInterrupt(digitalPinToInterrupt(pin), [this]() {
-            state = true;
-        }, RISING);
-        attachInterrupt(digitalPinToInterrupt(pin), [this]() {
-            state = false;
-        }, FALLING);
     }
 
     void populateTelemetry(JsonObject& json) override {
@@ -29,6 +20,7 @@ public:
     }
 
     bool isEngaged() {
+        int state = digitalRead(pin);
         return state != invertSwitch();
     }
 
@@ -36,6 +28,4 @@ private:
     const String name;
     const int pin;
     const std::function<bool()> invertSwitch;
-
-    volatile bool state;
 };
