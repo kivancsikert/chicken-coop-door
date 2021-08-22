@@ -41,6 +41,8 @@ private:
 
     bool tryConnect();
 
+    String host;
+    int port;
     String clientId;
     String prefix;
 

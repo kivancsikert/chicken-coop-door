@@ -1,5 +1,7 @@
 #include "MqttHandler.h"
 
+#include <ESPmDNS.h>
+
 MqttHandler::MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler)
     : wifiHandler(wifiHandler)
     , ntpHandler(ntpHandler)
@@ -13,15 +15,14 @@ void MqttHandler::begin(
 
     Serial.println("Initializing MQTT connector...");
 
-    String host = mqttConfig["host"].as<String>();
-    int port = mqttConfig["port"].as<int>();
+    host = mqttConfig["host"].as<String>();
+    port = mqttConfig["port"].as<int>();
     clientId = mqttConfig["clientId"].as<String>();
     prefix = mqttConfig["prefix"].as<String>();
 
     Serial.printf("MQTT broker at '%s:%d', using client id '%s'\n",
         host.c_str(), port, clientId.c_str());
 
-    mqttClient.setHost(host.c_str(), port);
     mqttClient.setKeepAlive(180);
     mqttClient.setCleanSession(true);
     mqttClient.setTimeout(10000);
@@ -62,11 +63,26 @@ bool MqttHandler::tryConnect() {
         return false;
     }
 
-    Serial.print("Connecting to MQTT...");
+    Serial.printf("Connecting to MQTT at %s", host.c_str());
+
+    String mdnsHost = host;
+    if (mdnsHost.endsWith(".local")) {
+        mdnsHost = mdnsHost.substring(0, mdnsHost.length() - 6);
+    }
+    IPAddress address = MDNS.queryHost(mdnsHost);
+    if (address == IPAddress()) {
+        Serial.print(" using the host name");
+        mqttClient.setHost(host.c_str(), port);
+    } else {
+        Serial.print(" using IP " + address.toString());
+        mqttClient.setHost(address, port);
+    }
+    Serial.print("...");
+
     bool result = mqttClient.connect(clientId.c_str());
 
     if (!result) {
-        Serial.printf("failed, error = %d (check lwmqtt_err_t), return code = %d (check lwmqtt_return_code_t)\n",
+        Serial.printf(" failed, error = %d (check lwmqtt_err_t), return code = %d (check lwmqtt_return_code_t)\n",
             mqttClient.lastError(), mqttClient.returnCode());
 
         // Clean up the client
