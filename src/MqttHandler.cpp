@@ -65,6 +65,8 @@ bool MqttHandler::tryConnect() {
 
     Serial.printf("Connecting to MQTT at %s", host.c_str());
 
+    // Lookup host name via MDNS explicitly
+    // See https://github.com/kivancsikert/chicken-coop-door/issues/128
     String mdnsHost = host;
     if (mdnsHost.endsWith(".local")) {
         mdnsHost = mdnsHost.substring(0, mdnsHost.length() - 6);
