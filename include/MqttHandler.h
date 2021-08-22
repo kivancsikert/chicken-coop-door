@@ -15,7 +15,8 @@
 // Maximum 24H (3600 * 24)
 #define JWT_EXPIRATION_IN_SECONDS (60 * 60)
 
-class MqttHandler : Loopable<void> {
+class MqttHandler
+    : public TimedLoopable<void> {
 public:
     MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler);
 
@@ -23,21 +24,34 @@ public:
         const JsonDocument& mqttConfig,
         std::function<void(const JsonDocument&)> onConfigChange,
         std::function<void(const JsonDocument&)> onCommand);
-    void loop() override;
 
     bool publishStatus(const JsonDocument& json);
     bool publishTelemetry(const JsonDocument& json);
+
+protected:
+    void timedLoop() override;
+    unsigned long getPeriodInMillis() override {
+        return 500;
+    }
+    void defaultValue() override {}
 
 private:
     bool publish(const String& topic, const JsonDocument& json);
     bool subscribe(const String& topic, int qos);
 
+    bool tryConnect();
+
+    String host;
+    int port;
     String clientId;
     String prefix;
 
     WiFiHandler& wifiHandler;
     NtpHandler& ntpHandler;
     MQTTClient mqttClient;
+
+    bool connecting = false;
+    unsigned long connectionStarted;
 
     // See https://cloud.google.com/iot/docs/how-tos/exponential-backoff
     int __backoff__ = 1000;    // current backoff, milliseconds

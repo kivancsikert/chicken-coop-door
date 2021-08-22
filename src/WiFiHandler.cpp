@@ -1,5 +1,9 @@
 #include "WiFiHandler.h"
 
+#if defined(ESP32)
+#include <ESPmDNS.h>
+#endif
+
 void WiFiHandler::begin() {
     bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
     if (!wifiModeSuccessful) {
@@ -46,6 +50,9 @@ bool WiFiHandler::awaitConnect() {
         Serial.print(WiFi.localIP());
         Serial.print(", hostname: ");
 #if defined(ESP32)
+        if (!MDNS.begin(hostname.c_str())) {
+            Serial.println("MDNS.begin() failed");
+        }
         WiFi.setHostname(hostname.c_str());
         Serial.println(WiFi.getHostname());
 #elif defined(ESP8266)
