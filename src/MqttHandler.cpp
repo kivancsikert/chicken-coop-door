@@ -1,6 +1,8 @@
 #include "MqttHandler.h"
 
+#if defined(ESP32)
 #include <ESPmDNS.h>
+#endif
 
 MqttHandler::MqttHandler(WiFiHandler& wifiHandler, NtpHandler& ntpHandler)
     : wifiHandler(wifiHandler)
@@ -63,9 +65,12 @@ bool MqttHandler::tryConnect() {
         return false;
     }
 
-    Serial.printf("Connecting to MQTT at %s", host.c_str());
+    Serial.printf("Connecting to MQTT at %s:%d", host.c_str(), port);
 
-    // Lookup host name via MDNS explicitly
+#if defined(ESP8266)
+    mqttClient.setHost(host.c_str(), port);
+#elif defined(ESP32)
+    // Lookup host name via MDNS explicitly on ESP32
     // See https://github.com/kivancsikert/chicken-coop-door/issues/128
     String mdnsHost = host;
     if (mdnsHost.endsWith(".local")) {
@@ -79,6 +84,7 @@ bool MqttHandler::tryConnect() {
         Serial.print(" using IP " + address.toString());
         mqttClient.setHost(address, port);
     }
+#endif
     Serial.print("...");
 
     bool result = mqttClient.connect(clientId.c_str());

@@ -1,6 +1,8 @@
 #include "WiFiHandler.h"
 
+#if defined(ESP32)
 #include <ESPmDNS.h>
+#endif
 
 void WiFiHandler::begin() {
     bool wifiModeSuccessful = WiFi.mode(WIFI_STA);
