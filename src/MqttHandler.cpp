@@ -42,61 +42,46 @@ void MqttHandler::begin(
     mqttClient.begin(wifiHandler.getClient());
 }
 
-void MqttHandler::loop() {
+void MqttHandler::timedLoop() {
     if (!mqttClient.connected()) {
-        if (!wifiHandler.connected()) {
-            Serial.println("Couldn't connect to MQTT because WIFI is down");
+        if (!tryConnect()) {
             return;
         }
+    }
+    mqttClient.loop();
+}
 
-        if (!ntpHandler.isUpToDate()) {
-            Serial.println("Couldn't connect to MQTT because NTP is not up to date");
-            return;
-        }
-
-        __backoff__ = __minbackoff__;
-        while (true) {
-            Serial.print("Connecting to MQTT...");
-
-            bool result = mqttClient.connect(clientId.c_str());
-
-            if (mqttClient.lastError() != LWMQTT_SUCCESS && result) {
-                Serial.printf("MQTT connection problem, error = %d (check lwmqtt_err_t), return code = %d (check lwmqtt_return_code_t)\n",
-                    mqttClient.lastError(), mqttClient.returnCode());
-
-                // See https://cloud.google.com/iot/docs/how-tos/exponential-backoff
-                if (__backoff__ < __minbackoff__) {
-                    __backoff__ = __minbackoff__;
-                }
-                __backoff__ = (__backoff__ * __factor__) + random(__jitter__);
-                if (__backoff__ > __max_backoff__) {
-                    __backoff__ = __max_backoff__;
-                }
-
-                // Clean up the client
-                mqttClient.disconnect();
-                Serial.println(" delaying " + String(__backoff__) + "ms");
-                delay(__backoff__);
-            } else {
-                if (!mqttClient.connected()) {
-                    Serial.println(" could not connect to MQTT, let's retry later...");
-                    mqttClient.disconnect();
-                    delay(__max_backoff__);
-                } else {
-                    // We're now connected
-                    Serial.println(" connected");
-                    break;
-                }
-            }
-        }
-
-        // Set QoS to 1 (ack) for configuration messages
-        subscribe("config", 1);
-        // QoS 0 (no ack) for commands
-        subscribe("command", 0);
+bool MqttHandler::tryConnect() {
+    if (!wifiHandler.connected()) {
+        Serial.println("Couldn't connect to MQTT because WIFI is down");
+        return false;
     }
 
-    mqttClient.loop();
+    if (!ntpHandler.isUpToDate()) {
+        Serial.println("Couldn't connect to MQTT because NTP is not up to date");
+        return false;
+    }
+
+    Serial.print("Connecting to MQTT...");
+    bool result = mqttClient.connect(clientId.c_str());
+
+    if (!result) {
+        Serial.printf("failed, error = %d (check lwmqtt_err_t), return code = %d (check lwmqtt_return_code_t)\n",
+            mqttClient.lastError(), mqttClient.returnCode());
+
+        // Clean up the client
+        mqttClient.disconnect();
+        return false;
+    }
+
+    // We're now connected
+    Serial.println(" connected");
+
+    // Set QoS to 1 (ack) for configuration messages
+    subscribe("config", 1);
+    // QoS 0 (no ack) for commands
+    subscribe("command", 0);
+    return true;
 }
 
 bool MqttHandler::publishStatus(const JsonDocument& json) {
