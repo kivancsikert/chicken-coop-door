@@ -25,8 +25,8 @@ public:
         std::function<void(const JsonDocument&)> onConfigChange,
         std::function<void(const JsonDocument&)> onCommand);
 
-    bool publishStatus(const JsonDocument& json);
-    bool publishTelemetry(const JsonDocument& json);
+    bool publish(const String& topic, const JsonDocument& json, bool retained = false, int qos = 0);
+    bool subscribe(const String& topic, int qos);
 
 protected:
     void timedLoop() override;
@@ -36,9 +36,6 @@ protected:
     void defaultValue() override {}
 
 private:
-    bool publish(const String& topic, const JsonDocument& json);
-    bool subscribe(const String& topic, int qos);
-
     bool tryConnect();
 
     String host;

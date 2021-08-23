@@ -32,9 +32,14 @@ class TelemetryPublisher
     : public TimedLoopable<void>,
       private ConfigAware {
 public:
-    TelemetryPublisher(const Config& config, MqttHandler& mqtt, TelemetryProvider& telemetryProvider)
+    TelemetryPublisher(
+        const Config& config,
+        MqttHandler& mqtt,
+        const String& topic,
+        TelemetryProvider& telemetryProvider)
         : ConfigAware(config)
         , mqtt(mqtt)
+        , topic(topic)
         , telemetryProvider(telemetryProvider) {
     }
 
@@ -51,11 +56,13 @@ protected:
         DynamicJsonDocument doc(2048);
         JsonObject root = doc.to<JsonObject>();
         telemetryProvider.populateTelemetry(root);
-        mqtt.publishTelemetry(doc);
+        mqtt.publish(topic, doc);
     }
-    void defaultValue() override {}
+    void defaultValue() override {
+    }
 
 private:
     MqttHandler& mqtt;
+    const String topic;
     TelemetryProvider& telemetryProvider;
 };

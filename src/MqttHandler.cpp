@@ -108,15 +108,7 @@ bool MqttHandler::tryConnect() {
     return true;
 }
 
-bool MqttHandler::publishStatus(const JsonDocument& json) {
-    return publish("status", json);
-}
-
-bool MqttHandler::publishTelemetry(const JsonDocument& json) {
-    return publish("events", json);
-}
-
-bool MqttHandler::publish(const String& topic, const JsonDocument& json) {
+bool MqttHandler::publish(const String& topic, const JsonDocument& json, bool retained, int qos) {
     if (!mqttClient.connected()) {
         return false;
     }
@@ -128,7 +120,7 @@ bool MqttHandler::publish(const String& topic, const JsonDocument& json) {
 #endif
     String payload;
     serializeJson(json, payload);
-    bool success = mqttClient.publish(fullTopic, payload.c_str());
+    bool success = mqttClient.publish(fullTopic, payload, retained, qos);
     if (!success) {
         Serial.printf("Error publishing to MQTT topic at '%s', error = %d\n",
             fullTopic.c_str(), mqttClient.lastError());
