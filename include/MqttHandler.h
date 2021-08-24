@@ -13,10 +13,6 @@
 #define MQTT_BUFFER_SIZE 2048
 #define MQTT_QUEUED_MESSAGES_MAX 16
 
-// Time (seconds) to expire token += 20 minutes for drift
-// Maximum 24H (3600 * 24)
-#define JWT_EXPIRATION_IN_SECONDS (60 * 60)
-
 struct MqttMessage {
     MqttMessage()
         : topic("")
