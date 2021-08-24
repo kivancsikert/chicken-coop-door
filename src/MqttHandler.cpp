@@ -51,6 +51,19 @@ void MqttHandler::timedLoop() {
             return;
         }
     }
+
+    while (!publishQueue.isEmpty()) {
+        MqttMessage message = publishQueue.pop();
+        bool success = mqttClient.publish(message.topic, message.payload, message.retain, message.qos);
+#ifdef DUMP_MQTT
+        Serial.printf("Published to '%s' (size: %d)\n", message.topic.c_str(), message.payload.length());
+#endif
+        if (!success) {
+            Serial.printf("Error publishing to MQTT topic at '%s', error = %d\n",
+                message.topic.c_str(), mqttClient.lastError());
+        }
+    }
+
     mqttClient.loop();
 }
 
@@ -108,24 +121,19 @@ bool MqttHandler::tryConnect() {
     return true;
 }
 
-bool MqttHandler::publish(const String& topic, const JsonDocument& json, bool retained, int qos) {
-    if (!mqttClient.connected()) {
-        return false;
-    }
+bool MqttHandler::publish(const String& topic, const JsonDocument& json, bool retain, int qos) {
     String fullTopic = prefix + "/" + topic;
 #ifdef DUMP_MQTT
-    Serial.printf("Publishing to MQTT topic '%s': ", fullTopic.c_str());
+    Serial.printf("Queuing MQTT topic '%s'%s (qos = %d): ",
+        fullTopic.c_str(), (retain ? " (retain)" : ""), qos);
     serializeJsonPretty(json, Serial);
     Serial.println();
 #endif
-    String payload;
-    serializeJson(json, payload);
-    bool success = mqttClient.publish(fullTopic, payload, retained, qos);
-    if (!success) {
-        Serial.printf("Error publishing to MQTT topic at '%s', error = %d\n",
-            fullTopic.c_str(), mqttClient.lastError());
+    bool storedWithoutDropping = publishQueue.unshift(MqttMessage(fullTopic, json, retain, qos));
+    if (!storedWithoutDropping) {
+        Serial.println("Overflow in publish queue, dropping message");
     }
-    return success;
+    return storedWithoutDropping;
 }
 
 bool MqttHandler::subscribe(const String& topic, int qos) {
