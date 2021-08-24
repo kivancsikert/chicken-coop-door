@@ -10,12 +10,11 @@ public:
     }
 
     void timedLoop() override {
-        if (state == State::UP_TO_DATE
-            && millis() - lastChecked > 24 * 60 * 60 * 1000) {
-            state = State::NEEDS_UPDATE;
-        }
         switch (state) {
             case State::UP_TO_DATE:
+                if (millis() - lastChecked > 7 * 24 * 60 * 60 * 1000) {
+                    state = State::NEEDS_UPDATE;
+                }
                 break;
             case State::NEEDS_UPDATE:
                 if (!wifiHandler.connected()) {
