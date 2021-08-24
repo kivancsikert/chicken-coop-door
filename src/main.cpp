@@ -31,7 +31,7 @@ NtpHandler ntp(wifi);
 MqttHandler mqtt(wifi, ntp);
 HttpUpdateHandler httpUpdateHandler(wifi);
 CompositeTelemetryProvider telemetryProvider({ &light, &openSwitch, &closeSwitch, &door });
-TelemetryPublisher telemetryPublisher(config, mqtt, telemetryProvider);
+TelemetryPublisher telemetryPublisher(config, mqtt, "events", telemetryProvider);
 
 void fatalError(String message) {
     Serial.println(message);
@@ -115,7 +115,7 @@ void setup() {
         populateEvent(event);
         JsonObject telemetry = root.createNestedObject("telemetry");
         telemetryProvider.populateTelemetry(telemetry);
-        return mqtt.publishStatus(doc);
+        return mqtt.publish("status", doc);
     });
     light.setOnUpdate([](float light) {
         door.lightChanged(light);
