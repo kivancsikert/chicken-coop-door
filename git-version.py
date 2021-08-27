@@ -8,6 +8,6 @@ template = """
 #define VERSION "%s"
 """
 
-version = subprocess.run(["git", "describe", "--long", "--dirty"], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+version = subprocess.run(["git", "describe", "--tags", "--long", "--dirty"], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 
 print(template.strip() % version, file=open("include/version.h", "w"))
